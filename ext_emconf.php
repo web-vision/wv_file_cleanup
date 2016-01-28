@@ -15,7 +15,7 @@
 
 $EM_CONF[$_EXTKEY] = array (
     'title' => 'FAL File cleanup',
-    'description' => 'Enables clean of unused fal records.',
+    'description' => 'Enables cleanup of unused fal records.',
     'category' => 'misc',
     'version' => '1.0.0',
     'state' => 'beta',
