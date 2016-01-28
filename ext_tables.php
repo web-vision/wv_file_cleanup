@@ -8,7 +8,7 @@ if (TYPO3_MODE === 'BE') {
         'cleanup',
         '',
         array(
-            'Cleanup' => 'index, cleanup, recycler',
+            'Cleanup' => 'index, cleanup',
         ),
         array(
             'access' => 'user,group',
