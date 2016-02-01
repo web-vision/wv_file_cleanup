@@ -41,6 +41,16 @@ class CleanupController extends ActionController
     protected $folder;
 
     /**
+     * @var array
+     */
+    public $MOD_MENU = array();
+
+    /**
+     * @var array
+     */
+    public $MOD_SETTINGS = [];
+
+    /**
      * @var BackendTemplateView
      */
     protected $view;
@@ -79,6 +89,13 @@ class CleanupController extends ActionController
             $pageRenderer = $this->view->getModuleTemplate()->getPageRenderer();
             $pageRenderer->loadRequireJsModule('TYPO3/CMS/Backend/ClickMenu');
             $pageRenderer->loadRequireJsModule('TYPO3/CMS/WvFileCleanup/Cleanup');
+            $pageRenderer->addJsInlineCode(
+                'FileCleanup',
+                'function jumpToUrl(URL) {
+                    window.location.href = URL;
+                    return false;
+                }'
+            );
 
             $this->registerDocHeaderButtons();
 
@@ -189,6 +206,49 @@ class CleanupController extends ActionController
         ) {
             $this->folder = null;
         }
+        // Configure the "menu" - which is used internally to save the values of sorting, displayThumbs etc.
+        $this->menuConfig();
+    }
+
+    /**
+     * Setting the menu/session variables
+     *
+     * @return void
+     */
+    public function menuConfig()
+    {
+        // MENU-ITEMS:
+        // If array, then it's a selector box menu
+        // If empty string it's just a variable, that will be saved.
+        // Values NOT in this array will not be saved in the settings-array for the module.
+        $this->MOD_MENU = array(
+            'displayThumbs' => '',
+        );
+
+        // CLEANSE SETTINGS
+        $this->MOD_SETTINGS = BackendUtility::getModuleData(
+            $this->MOD_MENU,
+            GeneralUtility::_GP('SET'),
+            'file_WvFileCleanupCleanup'
+        );
+    }
+
+    /**
+     * @return void
+     */
+    protected function initializeIndexAction()
+    {
+        $backendUser = $this->getBackendUser();
+        // Set predefined value for DisplayThumbnails:
+        if ($backendUser->getTSConfigVal('options.file_list.enableDisplayThumbnails') === 'activated') {
+            $this->MOD_SETTINGS['displayThumbs'] = true;
+        } elseif ($backendUser->getTSConfigVal('options.file_list.enableDisplayThumbnails') === 'deactivated') {
+            $this->MOD_SETTINGS['displayThumbs'] = false;
+        }
+        // If user never opened the list module, set the value for displayThumbs
+        if (!isset($this->MOD_SETTINGS['displayThumbs'])) {
+            $this->MOD_SETTINGS['displayThumbs'] = $backendUser->uc['thumbnailsByDefault'];
+        }
     }
 
     /**
@@ -249,6 +309,22 @@ class CleanupController extends ActionController
     {
         $this->view->assign('files', $this->fileRepository->findUnusedFile($this->folder));
         $this->view->assign('folder', $this->folder);
+
+        $this->view->assign('checkboxes', [
+            'displayThumbs' => [
+                'enabled' => $GLOBALS['TYPO3_CONF_VARS']['GFX']['thumbnails'] && $this->getBackendUser()->getTSConfigVal('options.file_list.enableDisplayThumbnails') === 'selectable',
+                'label' => $this->getLanguageService()->getLL('displayThumbs', true),
+                'html' => BackendUtility::getFuncCheck(
+                    $this->folder ? $this->folder->getCombinedIdentifier() : '',
+                    'SET[displayThumbs]',
+                    $this->MOD_SETTINGS['displayThumbs'],
+                    '',
+                    '',
+                    'id="checkDisplayThumbs"'
+                ),
+                'checked' => $this->MOD_SETTINGS['displayThumbs'],
+            ],
+        ]);
     }
 
     /**

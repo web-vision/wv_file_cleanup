@@ -45,9 +45,11 @@
 						</td>
 						<td nowrap="nowrap" class="col-title">
 							{file.name->f:format.crop( maxCharacters:30 )}
-							<f:if condition="{file.isImage}">
-								<br>
-								<f:image image="{file.resource}" maxWidth="64" maxHeight="43" />
+							<f:if condition="{checkboxes.displayThumbs.checked}">
+								<f:if condition="{file.isImage}">
+									<br>
+									<f:image image="{file.resource}" maxWidth="64" maxHeight="43" />
+								</f:if>
 							</f:if>
 						</td>
 						<td nowrap="nowrap">{file.extension}</td>
@@ -71,10 +73,25 @@
 				</tbody>
 			</table>
 		</div>
-			<div>
-				<button class="btn btn-danger">{f:translate( htmlEscape:'true', key:'LLL:EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf:button.cleanup_files' )}</button>
-			</div>
 		</f:form>
+
+		<!--
+			Listing options: submit button and checkbox for thumbnails
+		-->
+		<div class="typo3-listOptions">
+
+			<button class="btn btn-danger">{f:translate( htmlEscape:'true', key:'LLL:EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf:button.cleanup_files' )}</button>
+
+			<f:if condition="{checkboxes.displayThumbs.enabled}">
+				<div class="checkbox">
+					<label for="checkDisplayThumbs">
+						{checkboxes.displayThumbs.html -> f:format.raw()}
+						{checkboxes.displayThumbs.label}
+					</label>
+				</div>
+			</f:if>
+		</div>
+
 		</f:then>
 		<f:else>
 			<div class="alert alert-notice">
