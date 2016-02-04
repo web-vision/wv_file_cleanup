@@ -35,6 +35,7 @@ use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
  */
 class CleanupController extends ActionController
 {
+
     /**
      * @var Folder
      */
@@ -283,16 +284,23 @@ class CleanupController extends ActionController
             if ($parentFolder->getIdentifier() !== $this->folder->getIdentifier()
                 && $currentStorage->isWithinFileMountBoundaries($parentFolder)
             ) {
-                $levelUpClick = 'top.document.getElementsByName("navigation")[0].contentWindow.Tree.highlightActiveItem("file","folder'
+                $levelUpClick = 'top.document.getElementsByName("navigation")[0].';
+                $levelUpClick .= 'contentWindow.Tree.highlightActiveItem("file","folder'
                     . GeneralUtility::md5int($parentFolder->getCombinedIdentifier()) . '_"+top.fsMod.currentBank)';
                 $levelUpButton = $buttonBar->makeLinkButton()
-                    ->setHref(BackendUtility::getModuleUrl('file_WvFileCleanupCleanup', ['id' => $parentFolder->getCombinedIdentifier()]))
+                    ->setHref(
+                        BackendUtility::getModuleUrl(
+                            'file_WvFileCleanupCleanup',
+                            ['id' => $parentFolder->getCombinedIdentifier()]
+                        )
+                    )
                     ->setOnClick($levelUpClick)
                     ->setTitle($lang->sL('LLL:EXT:lang/locallang_core.xlf:labels.upOneLevel'))
                     ->setIcon($iconFactory->getIcon('actions-view-go-up', Icon::SIZE_SMALL));
                 $buttonBar->addButton($levelUpButton, ButtonBar::BUTTON_POSITION_LEFT, 1);
             }
         } catch (\Exception $e) {
+            // Silent ignore exceptions
         }
 
         // Shortcut
@@ -303,7 +311,7 @@ class CleanupController extends ActionController
     }
 
     /**
-     * @return string
+     * Index action
      */
     public function indexAction()
     {
@@ -312,7 +320,9 @@ class CleanupController extends ActionController
 
         $this->view->assign('checkboxes', [
             'displayThumbs' => [
-                'enabled' => $GLOBALS['TYPO3_CONF_VARS']['GFX']['thumbnails'] && $this->getBackendUser()->getTSConfigVal('options.file_list.enableDisplayThumbnails') === 'selectable',
+                'enabled' =>
+                    $GLOBALS['TYPO3_CONF_VARS']['GFX']['thumbnails']
+                    && $this->getBackendUser()->getTSConfigVal('options.file_list.enableDisplayThumbnails') === 'selectable',
                 'label' => $this->getLanguageService()->getLL('displayThumbs', true),
                 'html' => BackendUtility::getFuncCheck(
                     $this->folder ? $this->folder->getCombinedIdentifier() : '',
@@ -331,6 +341,8 @@ class CleanupController extends ActionController
      * Cleanup files
      *
      * @param array $files
+     * @throws Exception\ExistingTargetFolderException
+     * @throws \TYPO3\CMS\Extbase\Mvc\Exception\UnsupportedRequestTypeException
      */
     public function cleanupAction(array $files)
     {
@@ -359,6 +371,7 @@ class CleanupController extends ActionController
                     );
                 }
             } catch (Exception\FileDoesNotExistException $e) {
+                // If given doesn't exist we silently ignore the file
             }
         }
 
@@ -392,10 +405,17 @@ class CleanupController extends ActionController
      * @throws \InvalidArgumentException if the message body is no string
      * @see \TYPO3\CMS\Core\Messaging\FlashMessage
      */
-    public function addFlashMessage($messageBody, $messageTitle = '', $severity = \TYPO3\CMS\Core\Messaging\AbstractMessage::OK, $storeInSession = true)
-    {
+    public function addFlashMessage(
+        $messageBody,
+        $messageTitle = '',
+        $severity = \TYPO3\CMS\Core\Messaging\AbstractMessage::OK,
+        $storeInSession = true
+    ) {
         if (!is_string($messageBody)) {
-            throw new \InvalidArgumentException('The message body must be of type string, "' . gettype($messageBody) . '" given.', 1243258395);
+            throw new \InvalidArgumentException(
+                'The message body must be of type string, "' . gettype($messageBody) . '" given.',
+                1243258395
+            );
         }
         /* @var \TYPO3\CMS\Core\Messaging\FlashMessage $flashMessage */
         $flashMessage = GeneralUtility::makeInstance(
