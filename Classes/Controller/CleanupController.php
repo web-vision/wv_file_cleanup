@@ -112,8 +112,6 @@ class CleanupController extends ActionController
      * Incoming GET vars include id, pointer, table, imagemode
      *
      * @return void
-     * @throws \RuntimeException
-     * @throws Exception\InsufficientFolderAccessPermissionsException
      */
     public function initializeObject()
     {
@@ -235,6 +233,8 @@ class CleanupController extends ActionController
     }
 
     /**
+     * Initialize indexAction
+     *
      * @return void
      */
     protected function initializeIndexAction()
@@ -254,6 +254,8 @@ class CleanupController extends ActionController
 
     /**
      * Register doc header buttons
+     *
+     * @return void
      */
     protected function registerDocHeaderButtons()
     {
@@ -313,6 +315,8 @@ class CleanupController extends ActionController
 
     /**
      * Index action
+     *
+     * @return void
      */
     public function indexAction()
     {
@@ -342,8 +346,7 @@ class CleanupController extends ActionController
      *
      * @param array $files
      *
-     * @throws Exception\ExistingTargetFolderException
-     * @throws \TYPO3\CMS\Extbase\Mvc\Exception\UnsupportedRequestTypeException
+     * @return void
      */
     public function cleanupAction(array $files)
     {
@@ -401,10 +404,10 @@ class CleanupController extends ActionController
      * @param string $messageBody The message
      * @param string $messageTitle Optional message title
      * @param int $severity Optional severity, must be one of \TYPO3\CMS\Core\Messaging\FlashMessage constants
-     * @param bool $storeInSession Optional, defines whether the message should be stored in the session (default) or not
+     * @param bool $storeInSession Optional, defines whether the message should be stored in the session
      *
      * @return void
-     * @throws \InvalidArgumentException if the message body is no string
+     * @throws \InvalidArgumentException When the message body is no string
      */
     public function addFlashMessage(
         $messageBody,
