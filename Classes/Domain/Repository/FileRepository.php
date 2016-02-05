@@ -17,6 +17,8 @@ use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileInterface;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ProcessedFile;
+use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use WebVision\WvFileCleanup\FileFacade;
 
 /**
@@ -24,23 +26,53 @@ use WebVision\WvFileCleanup\FileFacade;
  *
  * @author Frans Saris <t3ext@beech.it>
  */
-class FileRepository
+class FileRepository implements SingletonInterface
 {
+    /**
+     * @var string
+     */
+    protected $fileNameDenyPattern = '';
+
+    /**
+     * FileRepository constructor
+     */
+    public function __construct()
+    {
+        $configuration = [];
+        if (!empty($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['wv_file_cleanup'])) {
+            $configuration = @unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['wv_file_cleanup']);
+        }
+        if (!empty($configuration['fileNameDenyPattern'])) {
+            $this->fileNameDenyPattern = $configuration['fileNameDenyPattern'];
+        }
+    }
+
     /**
      * Find all unused files
      *
      * @param Folder $folder
      * @param bool $recursive
+     * @param string $fileDenyPattern
+     *
      * @return \WebVision\WvFileCleanup\FileFacade[]
      */
-    public function findUnusedFile(Folder $folder, $recursive = true)
+    public function findUnusedFile(Folder $folder, $recursive = true, $fileDenyPattern = null)
     {
         $return = [];
         $files = $folder->getFiles(0, 0, Folder::FILTER_MODE_USE_OWN_AND_STORAGE_FILTERS, $recursive);
+        if ($fileDenyPattern === null) {
+            $fileDenyPattern = $this->fileNameDenyPattern;
+        }
 
-        // filer out all files in _recycler_ and _processed_ folder
-        $files = array_filter($files, function (FileInterface $file) {
-            return $file->getParentFolder()->getName() !== '_recycler_' && !($file instanceof ProcessedFile);
+        // filer out all files in _recycler_ and _processed_ folder + check fileDenyPattern
+        $files = array_filter($files, function (FileInterface $file) use ($fileDenyPattern) {
+            if ($file->getParentFolder()->getName() === '_recycler_' || $file instanceof ProcessedFile) {
+                return false;
+            }
+            if (!empty($fileDenyPattern) && preg_match($fileDenyPattern, $file->getName())) {
+                return false;
+            }
+            return true;
         });
 
         // filter out all files with references
@@ -59,6 +91,7 @@ class FileRepository
      * Get count of current references
      *
      * @param File $file
+     *
      * @return int
      */
     public function getReferenceCount(File $file)
