@@ -35,7 +35,6 @@ use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
  */
 class CleanupController extends ActionController
 {
-
     /**
      * @var Folder
      */
@@ -80,11 +79,12 @@ class CleanupController extends ActionController
      * Initialize the view
      *
      * @param ViewInterface $view The view
+     *
      * @return void
      */
     public function initializeView(ViewInterface $view)
     {
-        /** @var BackendTemplateView $view */
+        /** @var BackendTemplateView $view **/
         parent::initializeView($view);
         if ($view instanceof BackendTemplateView) {
             $pageRenderer = $this->view->getModuleTemplate()->getPageRenderer();
@@ -125,7 +125,7 @@ class CleanupController extends ActionController
 
         try {
             if ($combinedIdentifier) {
-                /** @var $resourceFactory ResourceFactory */
+                /** @var $resourceFactory ResourceFactory **/
                 $resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
                 $storage = $resourceFactory->getStorageObjectFromCombinedIdentifier($combinedIdentifier);
                 $identifier = substr($combinedIdentifier, strpos($combinedIdentifier, ':') + 1);
@@ -257,10 +257,10 @@ class CleanupController extends ActionController
      */
     protected function registerDocHeaderButtons()
     {
-        /** @var ButtonBar $buttonBar */
+        /** @var ButtonBar $buttonBar **/
         $buttonBar = $this->view->getModuleTemplate()->getDocHeaderComponent()->getButtonBar();
 
-        /** @var IconFactory $iconFactory */
+        /** @var IconFactory $iconFactory **/
         $iconFactory = $this->view->getModuleTemplate()->getIconFactory();
 
         $lang = $this->getLanguageService();
@@ -285,8 +285,9 @@ class CleanupController extends ActionController
                 && $currentStorage->isWithinFileMountBoundaries($parentFolder)
             ) {
                 $levelUpClick = 'top.document.getElementsByName("navigation")[0].';
-                $levelUpClick .= 'contentWindow.Tree.highlightActiveItem("file","folder'
-                    . GeneralUtility::md5int($parentFolder->getCombinedIdentifier()) . '_"+top.fsMod.currentBank)';
+                $levelUpClick .= 'contentWindow.Tree.highlightActiveItem("file","folder';
+                $levelUpClick .= GeneralUtility::md5int($parentFolder->getCombinedIdentifier());
+                $levelUpClick .= '_"+top.fsMod.currentBank)';
                 $levelUpButton = $buttonBar->makeLinkButton()
                     ->setHref(
                         BackendUtility::getModuleUrl(
@@ -320,8 +321,7 @@ class CleanupController extends ActionController
 
         $this->view->assign('checkboxes', [
             'displayThumbs' => [
-                'enabled' =>
-                    $GLOBALS['TYPO3_CONF_VARS']['GFX']['thumbnails']
+                'enabled' => $GLOBALS['TYPO3_CONF_VARS']['GFX']['thumbnails']
                     && $this->getBackendUser()->getTSConfigVal('options.file_list.enableDisplayThumbnails') === 'selectable',
                 'label' => $this->getLanguageService()->getLL('displayThumbs', true),
                 'html' => BackendUtility::getFuncCheck(
@@ -341,12 +341,13 @@ class CleanupController extends ActionController
      * Cleanup files
      *
      * @param array $files
+     *
      * @throws Exception\ExistingTargetFolderException
      * @throws \TYPO3\CMS\Extbase\Mvc\Exception\UnsupportedRequestTypeException
      */
     public function cleanupAction(array $files)
     {
-        /** @var $resourceFactory ResourceFactory */
+        /** @var $resourceFactory ResourceFactory **/
         $resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
         $movedFilesCount = 0;
 
@@ -401,9 +402,9 @@ class CleanupController extends ActionController
      * @param string $messageTitle Optional message title
      * @param int $severity Optional severity, must be one of \TYPO3\CMS\Core\Messaging\FlashMessage constants
      * @param bool $storeInSession Optional, defines whether the message should be stored in the session (default) or not
+     *
      * @return void
      * @throws \InvalidArgumentException if the message body is no string
-     * @see \TYPO3\CMS\Core\Messaging\FlashMessage
      */
     public function addFlashMessage(
         $messageBody,
@@ -417,7 +418,7 @@ class CleanupController extends ActionController
                 1243258395
             );
         }
-        /* @var \TYPO3\CMS\Core\Messaging\FlashMessage $flashMessage */
+        /** @var \TYPO3\CMS\Core\Messaging\FlashMessage $flashMessage **/
         $flashMessage = GeneralUtility::makeInstance(
             FlashMessage::class,
             $messageBody,
