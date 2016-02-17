@@ -45,8 +45,9 @@ class FileCommandController extends CommandController
      * @param bool $recursive Search sub folders of $folder recursive
      * @param bool $verbose Output some extra debug input
      * @param bool $dryRun Dry run do not really move files to recycler folder
+     * @param string $fileDenyPattern Regular expression to match (preg_match) the filename against. Matching files are excluded from cleanup. Example to match only *.pdf: /^(?!.*\b.pdf\b)/
      */
-    public function cleanupCommand($folder, $age = '1 month', $recursive = true, $verbose = false, $dryRun = false)
+    public function cleanupCommand($folder, $age = '1 month', $recursive = true, $verbose = false, $dryRun = false, $fileDenyPattern = '/index.html/i')
     {
         $age = strtotime('-' . $age);
 
@@ -76,7 +77,7 @@ class FileCommandController extends CommandController
         }
         $folderObject = $storage->getFolder($folderPath);
 
-        $files = $this->fileRepository->findUnusedFile($folderObject, $recursive);
+        $files = $this->fileRepository->findUnusedFile($folderObject, $recursive, $fileDenyPattern);
 
         if ($verbose) {
             $this->outputLine();
