@@ -13,6 +13,8 @@ namespace WebVision\WvFileCleanup\Command;
  *
  * The TYPO3 project - inspiring people to share!
  */
+use TYPO3\CMS\Core\Resource\Exception\FileOperationErrorException;
+use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 use WebVision\WvFileCleanup\FileFacade;
 
@@ -120,6 +122,91 @@ class FileCommandController extends CommandController
                 }
             }
             $this->outputLine('Moved ' . $movedFilesCount . ' file(s) to recycler folders');
+        }
+
+        // Restore permissions
+        $storage->setEvaluatePermissions($evaluatePermissions);
+    }
+
+    /**
+     * Empty recycler folders
+     *
+     * Permanently delete files from recycler folders
+     *
+     * @param string $folder Combined identifier of root folder (example: 1:/)
+     * @param string $age Only files that are in recycler folder since ... (strtotime string)
+     * @param bool $recursive Search sub folders of $folder recursive
+     * @param bool $verbose Output some extra debug input
+     * @param bool $dryRun Dry run do not really delete files
+     * @param string $fileDenyPattern Regular expression to match (preg_match) the filename against. Matching files are excluded from cleanup. Example to match only *.pdf: /^(?!.*\b.pdf\b)/
+     */
+    public function emptyRecyclerCommand($folder, $age = '1 month', $recursive = true, $verbose = false, $dryRun = false, $fileDenyPattern = '/index.html/i')
+    {
+        $age = strtotime('-' . $age);
+
+        if ($age === false) {
+            $this->outputLine('Value of \'age\' isn\'t recognized. See http://php.net/manual/en/function.strtotime.php for possible values');
+            return;
+        }
+
+        list($storageUid, $folderPath) = explode(':', $folder, 2);
+
+        // Fallback for when only a path is given
+        if (!is_numeric($storageUid)) {
+            $storageUid = 1;
+            $folderPath = $folder;
+        }
+
+        $storage = $this->resourceFactory->getStorageObject($storageUid);
+        $evaluatePermissions = $storage->getEvaluatePermissions();
+        // Temporary disable permission checks
+        $storage->setEvaluatePermissions(false);
+
+        if (!$storage->hasFolder($folderPath)) {
+            $this->outputLine('Unknown folder [' . $folderPath . '] in storage ' . $storageUid);
+            // Restore permissions
+            $storage->setEvaluatePermissions($evaluatePermissions);
+            return;
+        }
+        $folderObject = $storage->getFolder($folderPath);
+
+        $files = $this->fileRepository->findAllFilesInRecyclerFolder($folderObject, $recursive, $fileDenyPattern);
+
+        if ($verbose) {
+            $this->outputLine();
+            $this->outputLine('Found ' . count($files) . ' files');
+            $this->outputLine();
+        }
+
+        /** @var File $file */
+        foreach ($files as $key => $file) {
+            $fileAge = $file->getModificationTime();
+            if ($verbose) {
+                $this->outputLine('File: ' . $file->getParentFolder()->getReadablePath() . $file->getName() . ': ' . date('Ymd', $fileAge) . ' < ' . date('Ymd', $age));
+            }
+            // Remove all files "newer" then age from our array
+            if ($fileAge > $age) {
+                unset($files[$key]);
+            }
+        }
+        if ($verbose) {
+            $this->outputLine();
+            $this->outputLine('Found ' . count($files) . ' files longer then ' . date('Ymd', $age) . ' in recycler folder');
+            $this->outputLine();
+        }
+
+        if (!$dryRun) {
+            $deletedFilesCount = 0;
+            /** @var File $file */
+            foreach ($files as $file) {
+                try {
+                    $file->delete();
+                    $deletedFilesCount++;
+                } catch (FileOperationErrorException $e) {
+                    $this->outputLine('Failed to remove ' . $file->getName() . ' [' . $e->getMessage() . ']');
+                }
+            }
+            $this->outputLine('Deleted ' . $deletedFilesCount . ' file(s) from recycler folders');
         }
 
         // Restore permissions

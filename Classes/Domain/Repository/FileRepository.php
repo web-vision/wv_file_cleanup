@@ -88,6 +88,52 @@ class FileRepository implements SingletonInterface
     }
 
     /**
+     * Find all files in _recycler_ folder(s)
+     *
+     * @param Folder $folder
+     * @param bool $recursive
+     * @param string $fileDenyPattern
+     *
+     * @return File[]
+     */
+    public function findAllFilesInRecyclerFolder(Folder $folder, $recursive = true, $fileDenyPattern = null)
+    {
+        if ($fileDenyPattern === null) {
+            $fileDenyPattern = $this->fileNameDenyPattern;
+        }
+        $folders = [];
+        $files = [];
+        if (!$recursive) {
+            if ($folder->hasFolder('_recycler_')) {
+                $folders[] = $folder->getSubfolder('_recycler_');
+            }
+        } else {
+            foreach ($folder->getStorage()->getFoldersInFolder($folder, 0, 0, true, true) as $subFolder) {
+                if ($subFolder->getName() === '_recycler_') {
+                    $folders[] = $subFolder;
+                }
+            }
+        }
+
+        /** @var Folder $folder */
+        foreach ($folders as $folder) {
+            $files += $folder->getFiles();
+        }
+
+        // Check fileDenyPattern
+        if (!empty($fileDenyPattern)) {
+            $files = array_filter($files, function (FileInterface $file) use ($fileDenyPattern) {
+                if (preg_match($fileDenyPattern, $file->getName())) {
+                    return false;
+                }
+                return true;
+            });
+        }
+
+        return $files;
+    }
+
+    /**
      * Get count of current references
      *
      * @param File $file
