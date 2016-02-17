@@ -116,6 +116,7 @@ class CleanupController extends ActionController
     public function initializeObject()
     {
         $this->getLanguageService()->includeLLFile('EXT:lang/locallang_mod_file_list.xlf');
+        $this->getLanguageService()->includeLLFile('EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf');
         $this->getLanguageService()->includeLLFile('EXT:lang/locallang_misc.xlf');
 
         // GPvars:
@@ -222,6 +223,7 @@ class CleanupController extends ActionController
         // Values NOT in this array will not be saved in the settings-array for the module.
         $this->MOD_MENU = array(
             'displayThumbs' => '',
+            'recursive' => '',
         );
 
         // CLEANSE SETTINGS
@@ -320,7 +322,7 @@ class CleanupController extends ActionController
      */
     public function indexAction()
     {
-        $this->view->assign('files', $this->fileRepository->findUnusedFile($this->folder));
+        $this->view->assign('files', $this->fileRepository->findUnusedFile($this->folder, $this->MOD_SETTINGS['recursive']));
         $this->view->assign('folder', $this->folder);
 
         $this->view->assign('checkboxes', [
@@ -337,6 +339,19 @@ class CleanupController extends ActionController
                     'id="checkDisplayThumbs"'
                 ),
                 'checked' => $this->MOD_SETTINGS['displayThumbs'],
+            ],
+            'recursive' => [
+                'enabled' => true,
+                'label' => $this->getLanguageService()->getLL('search_folders_recursive', true),
+                'html' => BackendUtility::getFuncCheck(
+                    $this->folder ? $this->folder->getCombinedIdentifier() : '',
+                    'SET[recursive]',
+                    $this->MOD_SETTINGS['recursive'],
+                    '',
+                    '',
+                    'id="checkRecursive"'
+                ),
+                'checked' => $this->MOD_SETTINGS['recursive'],
             ],
         ]);
     }

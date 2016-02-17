@@ -75,12 +75,23 @@
 		</div>
 		</f:form>
 
+
+		</f:then>
+		<f:else>
+			<div class="alert alert-notice">
+				<p>{f:translate( htmlEscape:'true', key:'LLL:EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf:no_files_found' )}</p>
+			</div>
+		</f:else>
+	</f:if>
+
 		<!--
 			Listing options: submit button and checkbox for thumbnails
 		-->
 		<div class="typo3-listOptions">
 
-			<button class="btn btn-danger">{f:translate( htmlEscape:'true', key:'LLL:EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf:button.cleanup_files' )}</button>
+			<f:if condition="{files->f:count()} > 0">
+				<button class="btn btn-danger">{f:translate( htmlEscape:'true', key:'LLL:EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf:button.cleanup_files' )}</button>
+			</f:if>
 
 			<f:if condition="{checkboxes.displayThumbs.enabled}">
 				<div class="checkbox">
@@ -90,15 +101,13 @@
 					</label>
 				</div>
 			</f:if>
-		</div>
-
-		</f:then>
-		<f:else>
-			<div class="alert alert-notice">
-			<p>{f:translate( htmlEscape:'true', key:'LLL:EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf:no_files_found' )}</p>
+			<div class="checkbox">
+				<label for="checkRecursive">
+					{checkboxes.recursive.html -> f:format.raw()}
+					{checkboxes.recursive.label}
+				</label>
 			</div>
-		</f:else>
-	</f:if>
+		</div>
 </f:section>
 
 </html>

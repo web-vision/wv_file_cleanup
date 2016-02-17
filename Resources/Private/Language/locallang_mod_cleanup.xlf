@@ -24,6 +24,10 @@
                 <source>No files found</source>
             </trans-unit>
 
+            <trans-unit id="search_folders_recursive">
+                <source>Search folders recursive</source>
+            </trans-unit>
+
             <trans-unit id="ext_conf.fileNameDenyPattern">
                 <source>Filename deny pattern: Regular expression to match (preg_match) the filename against. Matching files are excluded from cleanup.</source>
             </trans-unit>
