@@ -43,12 +43,7 @@ class CleanupController extends ActionController
     /**
      * @var array
      */
-    public $MOD_MENU = array();
-
-    /**
-     * @var array
-     */
-    public $MOD_SETTINGS = [];
+    public $moduleSettings = [];
 
     /**
      * @var BackendTemplateView
@@ -119,7 +114,7 @@ class CleanupController extends ActionController
         $this->getLanguageService()->includeLLFile('EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf');
         $this->getLanguageService()->includeLLFile('EXT:lang/locallang_misc.xlf');
 
-        // GPvars:
+        // GPvars
         $combinedIdentifier = GeneralUtility::_GP('id');
 
         try {
@@ -206,29 +201,22 @@ class CleanupController extends ActionController
         ) {
             $this->folder = null;
         }
-        // Configure the "menu" - which is used internally to save the values of sorting, displayThumbs etc.
-        $this->menuConfig();
+        // Configure the "options" - which is used internally to save the values of sorting, displayThumbs etc.
+        $this->optionsConfig();
     }
 
     /**
-     * Setting the menu/session variables
+     * Setting the options/session variables
      *
      * @return void
      */
-    public function menuConfig()
+    protected function optionsConfig()
     {
-        // MENU-ITEMS:
-        // If array, then it's a selector box menu
-        // If empty string it's just a variable, that will be saved.
-        // Values NOT in this array will not be saved in the settings-array for the module.
-        $this->MOD_MENU = array(
-            'displayThumbs' => '',
-            'recursive' => '',
-        );
-
-        // CLEANSE SETTINGS
-        $this->MOD_SETTINGS = BackendUtility::getModuleData(
-            $this->MOD_MENU,
+        $this->moduleSettings = BackendUtility::getModuleData(
+            [
+                'displayThumbs' => '',
+                'recursive' => '',
+            ],
             GeneralUtility::_GP('SET'),
             'file_WvFileCleanupCleanup'
         );
@@ -244,13 +232,13 @@ class CleanupController extends ActionController
         $backendUser = $this->getBackendUser();
         // Set predefined value for DisplayThumbnails:
         if ($backendUser->getTSConfigVal('options.file_list.enableDisplayThumbnails') === 'activated') {
-            $this->MOD_SETTINGS['displayThumbs'] = true;
+            $this->moduleSettings['displayThumbs'] = true;
         } elseif ($backendUser->getTSConfigVal('options.file_list.enableDisplayThumbnails') === 'deactivated') {
-            $this->MOD_SETTINGS['displayThumbs'] = false;
+            $this->moduleSettings['displayThumbs'] = false;
         }
         // If user never opened the list module, set the value for displayThumbs
-        if (!isset($this->MOD_SETTINGS['displayThumbs'])) {
-            $this->MOD_SETTINGS['displayThumbs'] = $backendUser->uc['thumbnailsByDefault'];
+        if (!isset($this->moduleSettings['displayThumbs'])) {
+            $this->moduleSettings['displayThumbs'] = $backendUser->uc['thumbnailsByDefault'];
         }
     }
 
@@ -322,7 +310,7 @@ class CleanupController extends ActionController
      */
     public function indexAction()
     {
-        $this->view->assign('files', $this->fileRepository->findUnusedFile($this->folder, $this->MOD_SETTINGS['recursive']));
+        $this->view->assign('files', $this->fileRepository->findUnusedFile($this->folder, $this->moduleSettings['recursive']));
         $this->view->assign('folder', $this->folder);
 
         $this->view->assign('checkboxes', [
@@ -333,12 +321,12 @@ class CleanupController extends ActionController
                 'html' => BackendUtility::getFuncCheck(
                     $this->folder ? $this->folder->getCombinedIdentifier() : '',
                     'SET[displayThumbs]',
-                    $this->MOD_SETTINGS['displayThumbs'],
+                    $this->moduleSettings['displayThumbs'],
                     '',
                     '',
                     'id="checkDisplayThumbs"'
                 ),
-                'checked' => $this->MOD_SETTINGS['displayThumbs'],
+                'checked' => $this->moduleSettings['displayThumbs'],
             ],
             'recursive' => [
                 'enabled' => true,
@@ -346,12 +334,12 @@ class CleanupController extends ActionController
                 'html' => BackendUtility::getFuncCheck(
                     $this->folder ? $this->folder->getCombinedIdentifier() : '',
                     'SET[recursive]',
-                    $this->MOD_SETTINGS['recursive'],
+                    $this->moduleSettings['recursive'],
                     '',
                     '',
                     'id="checkRecursive"'
                 ),
-                'checked' => $this->MOD_SETTINGS['recursive'],
+                'checked' => $this->moduleSettings['recursive'],
             ],
         ]);
     }
