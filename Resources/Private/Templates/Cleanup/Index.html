@@ -73,6 +73,9 @@
 				</tbody>
 			</table>
 		</div>
+
+			<f:render section="Options" arguments="{_all}" />
+
 		</f:form>
 
 
@@ -84,30 +87,33 @@
 		</f:else>
 	</f:if>
 
-		<!--
-			Listing options: submit button and checkbox for thumbnails
-		-->
-		<div class="typo3-listOptions">
+</f:section>
 
-			<f:if condition="{files->f:count()} > 0">
-				<button class="btn btn-danger">{f:translate( htmlEscape:'true', key:'LLL:EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf:button.cleanup_files' )}</button>
-			</f:if>
+<f:section name="Options">
+	<!--
+    Listing options: submit button and checkbox for thumbnails
+-->
+	<div class="typo3-listOptions">
 
-			<f:if condition="{checkboxes.displayThumbs.enabled}">
-				<div class="checkbox">
-					<label for="checkDisplayThumbs">
-						{checkboxes.displayThumbs.html -> f:format.raw()}
-						{checkboxes.displayThumbs.label}
-					</label>
-				</div>
-			</f:if>
+		<f:if condition="{files->f:count()} > 0">
+			<button class="btn btn-danger">{f:translate( htmlEscape:'true', key:'LLL:EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf:button.cleanup_files' )}</button>
+		</f:if>
+
+		<f:if condition="{checkboxes.displayThumbs.enabled}">
 			<div class="checkbox">
-				<label for="checkRecursive">
-					{checkboxes.recursive.html -> f:format.raw()}
-					{checkboxes.recursive.label}
+				<label for="checkDisplayThumbs">
+					{checkboxes.displayThumbs.html -> f:format.raw()}
+					{checkboxes.displayThumbs.label}
 				</label>
 			</div>
+		</f:if>
+		<div class="checkbox">
+			<label for="checkRecursive">
+				{checkboxes.recursive.html -> f:format.raw()}
+				{checkboxes.recursive.label}
+			</label>
 		</div>
+	</div>
 </f:section>
 
 </html>
