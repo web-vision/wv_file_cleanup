@@ -8,11 +8,12 @@ using FAL.
 
 After installing ext:wv_file_cleanup a new BE module appears under "File".
 
-Also the command controller ``file:cleanup`` will be available.
+Also the command controllers ``file:cleanup`` and ``file:emptyrecycler`` will be available.
 
-Example of using the command controller::
+Example of using the command controllers::
 
     ./typo3/cli_dispatch.phpsh extbase file:cleanup 1:/ --verbose
+    ./typo3/cli_dispatch.phpsh extbase file:emptyrecycler 1:/ --verbose
 
 The command controller can be setup in the _scheduler_ as scheduler task.
 

@@ -180,7 +180,11 @@ class FileCommandController extends CommandController
 
         /** @var File $file */
         foreach ($files as $key => $file) {
-            $fileAge = $file->getModificationTime();
+            $fileAge = $this->fileRepository->getLastMove($file);
+            // Fallback to modification time
+            if (!$fileAge) {
+                $fileAge = $file->getModificationTime();
+            }
             if ($verbose) {
                 $this->outputLine('File: ' . $file->getParentFolder()->getReadablePath() . $file->getName() . ': ' . date('Ymd', $fileAge) . ' < ' . date('Ymd', $age));
             }

@@ -165,6 +165,22 @@ class FileRepository implements SingletonInterface
     }
 
     /**
+     * Get timestamp when file was last moved to another folder
+     *
+     * @param File $file
+     * @return int
+     */
+    public function getLastMove(File $file)
+    {
+        $row = $this->getDatabaseConnection()->exec_SELECTgetSingleRow(
+            'last_move',
+            'sys_file',
+            'uid=' . $file->getUid()
+        );
+        return $row ? $row['last_move'] : 0;
+    }
+
+    /**
      * @return \TYPO3\CMS\Core\Database\DatabaseConnection
      */
     protected function getDatabaseConnection()
