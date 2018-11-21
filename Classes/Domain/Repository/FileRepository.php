@@ -18,6 +18,7 @@ use TYPO3\CMS\Core\Resource\FileInterface;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use WebVision\WvFileCleanup\FileFacade;
 
@@ -34,6 +35,17 @@ class FileRepository implements SingletonInterface
     protected $fileNameDenyPattern = '';
 
     /**
+     * @var \TYPO3\CMS\Core\Database\ConnectionPool
+     */
+    protected $queryBuilder = null;
+
+    /**
+     * LEGACY CODE
+     * @var
+     */
+    protected $databaseConnection = null;
+
+    /**
      * FileRepository constructor
      */
     public function __construct()
@@ -45,6 +57,7 @@ class FileRepository implements SingletonInterface
         if (!empty($configuration['fileNameDenyPattern'])) {
             $this->fileNameDenyPattern = $configuration['fileNameDenyPattern'];
         }
+        $this->initDatabaseConnection();
     }
 
     /**
@@ -142,25 +155,58 @@ class FileRepository implements SingletonInterface
      */
     public function getReferenceCount(File $file)
     {
-        // sys_refindex
-        $refIndexCount = $this->getDatabaseConnection()->exec_SELECTcountRows(
-            'recuid',
-            'sys_refindex',
-            'ref_table=\'sys_file\''
-            . ' AND ref_uid=' . (int)$file->getUid()
-            . ' AND deleted=0'
-            . ' AND tablename != \'sys_file_metadata\''
-        );
+        if ($this->queryBuilder) {
+            // sys_refindex
+            $queryBuilder_1 = $this->queryBuilder->getQueryBuilderForTable('sys_refindex');
+            $res_1 = $queryBuilder_1
+                //->select('recuid,count(*) as count_files')
+                ->count('recuid')
+                ->from('sys_refindex')
+                ->where(
+                    $queryBuilder_1->expr()->eq('ref_table', '\'sys_file\''),
+                    $queryBuilder_1->expr()->eq('ref_uid', (int)$file->getUid()),
+                    $queryBuilder_1->expr()->eq('deleted', 0),
+                    $queryBuilder_1->expr()->neq('tablename', '\'sys_file_metadata\'')
+                )
+                ->execute();
+            $refIndexCount = $res_1->fetch()['COUNT(`recuid`)'];
 
-        // sys_file_reference
-        $fileReferenceCount = $this->getDatabaseConnection()->exec_SELECTcountRows(
-            'uid',
-            'sys_file_reference',
-            'table_local=\'sys_file\''
-            . ' AND uid_local=' . (int)$file->getUid()
-            . ' AND deleted=0'
-        );
+            // sys_file_reference
+            $queryBuilder_2 = $this->queryBuilder->getQueryBuilderForTable('sys_file_reference');
+            $res_2 = $queryBuilder_2
+                //->select('recuid,count(*) as count_files')
+                ->count('uid')
+                ->from('sys_file_reference')
+                ->where(
+                    $queryBuilder_2->expr()->eq('table_local', '\'sys_file\''),
+                    $queryBuilder_2->expr()->eq('uid_local', (int)$file->getUid()),
+                    $queryBuilder_2->expr()->eq('deleted', 0)
+                )
+                ->execute();
+            $fileReferenceCount = $res_2->fetch()['COUNT(`uid`)'];
 
+        } elseif ($this->databaseConnection) {
+            // LEGACY CODE
+            
+            // sys_refindex
+            $refIndexCount = $this->databaseConnection->exec_SELECTcountRows(
+                'recuid',
+                'sys_refindex',
+                'ref_table=\'sys_file\''
+                . ' AND ref_uid=' . (int)$file->getUid()
+                . ' AND deleted=0'
+                . ' AND tablename != \'sys_file_metadata\''
+            );
+
+            // sys_file_reference
+            $fileReferenceCount = $this->databaseConnection->exec_SELECTcountRows(
+                'uid',
+                'sys_file_reference',
+                'table_local=\'sys_file\''
+                . ' AND uid_local=' . (int)$file->getUid()
+                . ' AND deleted=0'
+            );
+        }
         return max((int)$refIndexCount, (int)$fileReferenceCount);
     }
 
@@ -172,19 +218,37 @@ class FileRepository implements SingletonInterface
      */
     public function getLastMove(File $file)
     {
-        $row = $this->getDatabaseConnection()->exec_SELECTgetSingleRow(
-            'last_move',
-            'sys_file',
-            'uid=' . $file->getUid()
-        );
+        if ($this->queryBuilder) {
+            $res = $this->queryBuilder
+                ->getQueryBuilderForTable('sys_file')
+                ->select('last_move')
+                ->from('sys_file')
+                ->where(
+                    $queryBuilder->expr()->eq('uid', (int)$file->getUid())
+                )
+                ->execute();
+            $row = $res->fetch();
+        } elseif ($this->databaseConnection) {
+            // LEGACY CODE
+            $row = $this->databaseConnection->exec_SELECTgetSingleRow(
+                'last_move',
+                'sys_file',
+                'uid=' . $file->getUid()
+            );
+        }
         return $row ? $row['last_move'] : 0;
     }
 
     /**
-     * @return \TYPO3\CMS\Core\Database\DatabaseConnection
+     * @return void
      */
-    protected function getDatabaseConnection()
+    protected function initDatabaseConnection()
     {
-        return $GLOBALS['TYPO3_DB'];
+        if (class_exists('\TYPO3\CMS\Core\Database\ConnectionPool')) {
+            $this->queryBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);
+        } elseif ($GLOBALS['TYPO3_DB']) {
+            // LEGACY CODE
+            $this->databaseConnection = $GLOBALS['TYPO3_DB'];
+        }
     }
 }
