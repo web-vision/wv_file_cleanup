@@ -26,6 +26,18 @@ use TYPO3\CMS\Core\SingletonInterface;
  */
 class ResourceStorageSlots implements SingletonInterface
 {
+
+    /**
+     * @var \TYPO3\CMS\Core\Database\ConnectionPool
+     */
+    protected $queryBuilder = null;
+
+    /**
+     * LEGACY CODE
+     * @var
+     */
+    protected $databaseConnection = null;
+
     /**
      * Post file move signal
      *
@@ -36,21 +48,39 @@ class ResourceStorageSlots implements SingletonInterface
     public function postFileMove(FileInterface $file, Folder $targetFolder, FolderInterface $originalFolder)
     {
         if ($file instanceof File) {
-            $this->getDatabaseConnection()->exec_UPDATEquery(
-                'sys_file',
-                'uid = ' . (int)$file->getUid(),
-                [
-                    'last_move' => time()
-                ]
-            );
+            $this->initDatabaseConnection();
+            if ($this->queryBuilder) {
+                $queryBuilder = $this->queryBuilder->getQueryBuilderForTable('sys_file');
+                $res = $queryBuilder->update('tt_content')
+                    ->where(
+                        $queryBuilder->expr()->eq('uid', (int)$file->getUid())
+                    )
+                    ->set('last_move', time())
+                    ->execute();
+
+            } elseif ($this->databaseConnection) {
+                // LEGACY CODE
+                $this->getDatabaseConnection()->exec_UPDATEquery(
+                    'sys_file',
+                    'uid = ' . (int)$file->getUid(),
+                    [
+                        'last_move' => time()
+                    ]
+                );
+            }
         }
     }
 
     /**
-     * @return \TYPO3\CMS\Core\Database\DatabaseConnection
+     * @return void
      */
-    protected function getDatabaseConnection()
+    protected function initDatabaseConnection()
     {
-        return $GLOBALS['TYPO3_DB'];
+        if (class_exists('\TYPO3\CMS\Core\Database\ConnectionPool')) {
+            $this->queryBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);
+        } elseif ($GLOBALS['TYPO3_DB']) {
+            // LEGACY CODE
+            $this->databaseConnection = $GLOBALS['TYPO3_DB'];
+        }
     }
 }

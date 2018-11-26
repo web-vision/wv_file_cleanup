@@ -42,6 +42,17 @@ class FileFacade
     protected $resource;
 
     /**
+     * @var \TYPO3\CMS\Core\Database\ConnectionPool
+     */
+    protected $queryBuilder = null;
+
+    /**
+     * LEGACY CODE
+     * @var
+     */
+    protected $databaseConnection = null;
+
+    /**
      * @param \TYPO3\CMS\Core\Resource\FileInterface $resource
      */
     public function __construct(\TYPO3\CMS\Core\Resource\FileInterface $resource)
@@ -244,15 +255,32 @@ class FileFacade
         if (!isset(self::$lastReferenceTimestamps[$uid])) {
             self::$lastReferenceTimestamps[$uid] = 0;
 
-            $row = $this->getDatabaseConnection()->exec_SELECTgetSingleRow(
-                'tstamp',
-                'sys_file_reference',
-                'table_local=\'sys_file\''
-                . ' AND uid_local=' . (int)$this->resource->getProperty('uid')
-                . ' AND deleted=1',
-                '',
-                'tstamp DESC'
-            );
+            if ($this->queryBuilder) {
+                $queryBuilder = $this->queryBuilder->getQueryBuilderForTable('sys_file_reference');
+                $res = $queryBuilder
+                    ->select('tstamp')
+                    ->from('sys_file_reference')
+                    ->where(
+                        $queryBuilder_1->expr()->eq('table_local', '\'sys_file\''),
+                        $queryBuilder_1->expr()->eq('uid_local', (int)$this->resource->getProperty('uid')),
+                        $queryBuilder_1->expr()->eq('deleted', 1)
+                    )
+                    ->orderBy('tstamp DESC')
+                    ->execute();
+                $row = $res->fetch();
+
+            } elseif ($this->databaseConnection) {
+                // LEGACY CODE
+                $row = $this->databaseConnection->exec_SELECTgetSingleRow(
+                    'tstamp',
+                    'sys_file_reference',
+                    'table_local=\'sys_file\''
+                    . ' AND uid_local=' . (int)$this->resource->getProperty('uid')
+                    . ' AND deleted=1',
+                    '',
+                    'tstamp DESC'
+                );
+            }
 
             if (is_array($row)) {
                 self::$lastReferenceTimestamps[$uid] = $row['tstamp'];
@@ -278,11 +306,16 @@ class FileFacade
     }
 
     /**
-     * @return \TYPO3\CMS\Core\Database\DatabaseConnection
+     * @return void
      */
-    protected function getDatabaseConnection()
+    protected function initDatabaseConnection()
     {
-        return $GLOBALS['TYPO3_DB'];
+        if (class_exists('\TYPO3\CMS\Core\Database\ConnectionPool')) {
+            $this->queryBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);
+        } elseif ($GLOBALS['TYPO3_DB']) {
+            // LEGACY CODE
+            $this->databaseConnection = $GLOBALS['TYPO3_DB'];
+        }
     }
 
     /**

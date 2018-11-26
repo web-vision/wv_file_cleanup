@@ -28,6 +28,8 @@ use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
 use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
 
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
+
 /**
  * Class CleanupController
  *
@@ -36,7 +38,7 @@ use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
 class CleanupController extends ActionController
 {
     /**
-     * @var Folder
+     * @var \TYPO3\CMS\Core\Resource\Folder
      */
     protected $folder;
 
@@ -106,13 +108,32 @@ class CleanupController extends ActionController
      * Initialize variables, file object
      * Incoming GET vars include id, pointer, table, imagemode
      *
+     * @TODO: make var $combinedIdentifier compatible to version 9 (and 8?) and remove workaround in template
+     *
      * @return void
      */
     public function initializeObject()
     {
-        $this->getLanguageService()->includeLLFile('EXT:lang/locallang_mod_file_list.xlf');
+        $mainVersion = explode('.', TYPO3_branch)[0];
+        switch ($mainVersion) {
+            case '7':
+                $langResourcePath = 'EXT:lang/';
+                $filelistResourcePath = 'EXT:lang/';
+            break;
+            case '8':
+                $langResourcePath = 'EXT:lang/Resources/Private/Language/';
+                $filelistResourcePath = 'EXT:lang/Resources/Private/Language/';
+            break;
+            default:
+                // 9 and above
+                $langResourcePath = 'EXT:core/Resources/Private/Language/';
+                $filelistResourcePath = 'EXT:filelist/Resources/Private/Language/';
+            break;
+        }
+        $this->getLanguageService()->includeLLFile($langResourcePath . 'locallang_core.xlf');
+        $this->getLanguageService()->includeLLFile($langResourcePath . 'locallang_misc.xlf');
+        $this->getLanguageService()->includeLLFile($filelistResourcePath . 'locallang_mod_file_list.xlf');
         $this->getLanguageService()->includeLLFile('EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf');
-        $this->getLanguageService()->includeLLFile('EXT:lang/locallang_misc.xlf');
 
         // GPvars
         $combinedIdentifier = GeneralUtility::_GP('id');
@@ -263,10 +284,15 @@ class CleanupController extends ActionController
                 'target' => rawurlencode($this->folder->getCombinedIdentifier())
             )
         );
-        $refreshButton = $buttonBar->makeLinkButton()
+        $buttonFactory = GeneralUtility::makeInstance(
+            \TYPO3\CMS\Backend\Template\Components\Buttons\LinkButton::class
+        );
+        $buttonTitle = $this->getLanguageService()->getLL('labels.reload');
+        $refreshButton = $buttonBar->makeLinkButton($buttonFactory)
             ->setHref($refreshLink)
-            ->setTitle($lang->sL('LLL:EXT:lang/locallang_core.xlf:labels.reload'))
+            ->setTitle($buttonTitle)
             ->setIcon($iconFactory->getIcon('actions-refresh', Icon::SIZE_SMALL));
+
         $buttonBar->addButton($refreshButton, ButtonBar::BUTTON_POSITION_RIGHT);
 
         // Level up
@@ -276,11 +302,15 @@ class CleanupController extends ActionController
             if ($parentFolder->getIdentifier() !== $this->folder->getIdentifier()
                 && $currentStorage->isWithinFileMountBoundaries($parentFolder)
             ) {
+                $levelUpTitle = $this->getLanguageService()->getLL('labels.upOneLevel');
+                if (!$levelUpTitle) {
+                    $levelUpTitle = 'Up one level';
+                }
                 $levelUpClick = 'top.document.getElementsByName("navigation")[0].';
                 $levelUpClick .= 'contentWindow.Tree.highlightActiveItem("file","folder';
                 $levelUpClick .= GeneralUtility::md5int($parentFolder->getCombinedIdentifier());
                 $levelUpClick .= '_"+top.fsMod.currentBank)';
-                $levelUpButton = $buttonBar->makeLinkButton()
+                $levelUpButton = $buttonBar->makeLinkButton($buttonFactory)
                     ->setHref(
                         BackendUtility::getModuleUrl(
                             'file_WvFileCleanupCleanup',
@@ -288,7 +318,7 @@ class CleanupController extends ActionController
                         )
                     )
                     ->setOnClick($levelUpClick)
-                    ->setTitle($lang->sL('LLL:EXT:lang/locallang_core.xlf:labels.upOneLevel'))
+                    ->setTitle($levelUpTitle)
                     ->setIcon($iconFactory->getIcon('actions-view-go-up', Icon::SIZE_SMALL));
                 $buttonBar->addButton($levelUpButton, ButtonBar::BUTTON_POSITION_LEFT, 1);
             }
