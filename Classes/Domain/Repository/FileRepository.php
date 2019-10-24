@@ -219,12 +219,12 @@ class FileRepository implements SingletonInterface
     public function getLastMove(File $file)
     {
         if ($this->queryBuilder) {
-            $res = $this->queryBuilder
-                ->getQueryBuilderForTable('sys_file')
+            $queryBuilder_1 = $this->queryBuilder->getQueryBuilderForTable('sys_file');
+            $res = $queryBuilder_1
                 ->select('last_move')
                 ->from('sys_file')
                 ->where(
-                    $queryBuilder->expr()->eq('uid', (int)$file->getUid())
+                    $queryBuilder_1->expr()->eq('uid', (int)$file->getUid())
                 )
                 ->execute();
             $row = $res->fetch();
