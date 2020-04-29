@@ -17,7 +17,7 @@ namespace WebVision\WvFileCleanup\ViewHelpers\Link;
 /**
  * Class ClickMenuOnIconViewHelper
  */
-class ClickMenuOnIconViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper
+class ClickMenuOnIconViewHelper extends \TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper
 {
     /**
      * @var string

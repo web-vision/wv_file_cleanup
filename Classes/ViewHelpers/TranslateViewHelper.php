@@ -15,8 +15,8 @@ namespace WebVision\WvFileCleanup\ViewHelpers;
  */
 
 use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
-use TYPO3\CMS\Fluid\Core\Rendering\RenderingContextInterface;
-use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
+use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
+use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper;
 use TYPO3\CMS\Fluid\Core\ViewHelper\Exception\InvalidVariableException;
 use TYPO3\CMS\Fluid\Core\ViewHelper\Facets\CompilableInterface;
 
@@ -117,7 +117,7 @@ class TranslateViewHelper extends AbstractViewHelper
     public function initializeArguments()
     {
         $mainVersion = explode('.', TYPO3_branch)[0];
-        if ($mainVersion == 9) {
+        if ($mainVersion == 9 || $mainVersion == 10) {
             $this->registerArgument('key', 'string', 'Translation Key');
             $this->registerArgument('id', 'string', 'Translation Key compatible to TYPO3 Flow');
             $this->registerArgument('default', 'string', 'If the given locallang key could not be found, this value is used. If this argument is not set, child nodes will be used to render the default');

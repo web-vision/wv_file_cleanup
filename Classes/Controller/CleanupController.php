@@ -60,17 +60,10 @@ class CleanupController extends ActionController
     protected $defaultViewObjectName = BackendTemplateView::class;
 
     /**
-     * @var FileRepository
+     * @var \WebVision\WvFileCleanup\Domain\Repository\FileRepository
+     * @TYPO3\CMS\Extbase\Annotation\Inject
      */
     protected $fileRepository;
-
-    /**
-     * @param FileRepository $fileRepository
-     */
-    public function injectFileRepository(FileRepository $fileRepository)
-    {
-        $this->fileRepository = $fileRepository;
-    }
 
     /**
      * Initialize the view
@@ -251,10 +244,12 @@ class CleanupController extends ActionController
     protected function initializeIndexAction()
     {
         $backendUser = $this->getBackendUser();
+        $backendUserTsconfig = $this->getBackendUserTsconfig();
+        
         // Set predefined value for DisplayThumbnails:
-        if ($backendUser->getTSConfigVal('options.file_list.enableDisplayThumbnails') === 'activated') {
+        if ($backendUserTsconfig['options.']['file_list.']['enableDisplayThumbnails'] === 'activated') {
             $this->moduleSettings['displayThumbs'] = true;
-        } elseif ($backendUser->getTSConfigVal('options.file_list.enableDisplayThumbnails') === 'deactivated') {
+        } elseif ($backendUserTsconfig['options.']['file_list.']['enableDisplayThumbnails'] === 'deactivated') {
             $this->moduleSettings['displayThumbs'] = false;
         }
         // If user never opened the list module, set the value for displayThumbs
@@ -342,11 +337,11 @@ class CleanupController extends ActionController
     {
         $this->view->assign('files', $this->fileRepository->findUnusedFile($this->folder, $this->moduleSettings['recursive']));
         $this->view->assign('folder', $this->folder);
-
+        $backendUserTsconfig = $this->getBackendUserTsconfig();
         $this->view->assign('checkboxes', [
             'displayThumbs' => [
                 'enabled' => $GLOBALS['TYPO3_CONF_VARS']['GFX']['thumbnails']
-                    && $this->getBackendUser()->getTSConfigVal('options.file_list.enableDisplayThumbnails') === 'selectable',
+                    && $backendUserTsconfig['options.']['file_list.']['enableDisplayThumbnails'] === 'selectable',
                 'label' => $this->getLanguageService()->getLL('displayThumbs', true),
                 'html' => BackendUtility::getFuncCheck(
                     $this->folder ? $this->folder->getCombinedIdentifier() : '',
@@ -386,7 +381,6 @@ class CleanupController extends ActionController
         /** @var $resourceFactory ResourceFactory **/
         $resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
         $movedFilesCount = 0;
-
         foreach ($files as $fileUid) {
             try {
                 $file = $resourceFactory->getFileObject($fileUid);
@@ -483,5 +477,14 @@ class CleanupController extends ActionController
     protected function getBackendUser()
     {
         return $GLOBALS['BE_USER'];
+    }
+
+     /**
+     * Returns an array of BE user tsconfig
+     * @return array
+     */
+    protected function getBackendUserTsconfig()
+    {
+        return $this->getBackendUser()->getTSConfig();
     }
 }

@@ -34,8 +34,7 @@ class ResourceStorageSlots implements SingletonInterface
     protected $queryBuilder = null;
 
     /**
-     * LEGACY CODE
-     * @var
+     * @var \TYPO3\CMS\Core\Database\DatabaseConnection
      */
     protected $databaseConnection = null;
 
@@ -52,7 +51,7 @@ class ResourceStorageSlots implements SingletonInterface
             $this->initDatabaseConnection();
             if ($this->queryBuilder) {
                 $queryBuilder = $this->queryBuilder->getQueryBuilderForTable('sys_file');
-                $res = $queryBuilder->update('tt_content')
+                $res = $queryBuilder->update('sys_file')
                     ->where(
                         $queryBuilder->expr()->eq('uid', (int)$file->getUid())
                     )
@@ -61,7 +60,7 @@ class ResourceStorageSlots implements SingletonInterface
 
             } elseif ($this->databaseConnection) {
                 // LEGACY CODE
-                $this->getDatabaseConnection()->exec_UPDATEquery(
+                $this->databaseConnection->exec_UPDATEquery(
                     'sys_file',
                     'uid = ' . (int)$file->getUid(),
                     [
