@@ -17,14 +17,14 @@ $EM_CONF[$_EXTKEY] = array (
     'title' => 'FAL File cleanup',
     'description' => 'Enables cleanup of unused fal records.',
     'category' => 'misc',
-    'version' => '1.0.0',
-    'state' => 'beta',
+    'version' => '1.0.1',
+    'state' => 'stable',
     'author' => 'Frans Saris',
-    'author_email' => 'frans@beech.it',
+    'author_email' => 'frans@beech.it,ricky@web-vision.de',
     'author_company' => 'beech.it, web-vision GmbH',
     'constraints' => array (
         'depends' => array (
-            'typo3' => '7.6',
+            'typo3' => '9.5.1-10.4.99',
         ),
     ),
 );

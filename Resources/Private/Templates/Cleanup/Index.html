@@ -1,6 +1,6 @@
 <html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
 	  xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
-	  xmlns:fl="WebVision\WvFileCleanup\ViewHelpers">
+	  xmlns:fl="http://typo3.org/ns/WebVision/WvFileCleanup/ViewHelpers">
 
 <f:layout name="Default" />
 
@@ -33,7 +33,7 @@
 				<f:for each="{files}" as="file">
 					<tr data-uid="0" data-l10nparent="0">
 						<td nowrap="nowrap" class="col-checkbox">
-							<f:form.checkbox value="{file.uid}" name="files[]" class="checkbox js-cleanup-checkbox" />
+							<f:form.checkbox value="{file.resource.properties.uid}" name="files[]" class="checkbox js-cleanup-checkbox" />
 						</td>
 						<td nowrap="nowrap" class="col-icon">
                             <f:if condition="{file.combinedIdentifier}">

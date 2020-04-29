@@ -40,8 +40,7 @@ class FileRepository implements SingletonInterface
     protected $queryBuilder = null;
 
     /**
-     * LEGACY CODE
-     * @var
+     * @var \TYPO3\CMS\Core\Database\DatabaseConnection
      */
     protected $databaseConnection = null;
 
