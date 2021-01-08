@@ -27,17 +27,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class ResourceStorageSlots implements SingletonInterface
 {
-
-    /**
-     * @var \TYPO3\CMS\Core\Database\ConnectionPool
-     */
-    protected $queryBuilder = null;
-
-    /**
-     * @var \TYPO3\CMS\Core\Database\DatabaseConnection
-     */
-    protected $databaseConnection = null;
-
     /**
      * Post file move signal
      *
@@ -48,39 +37,14 @@ class ResourceStorageSlots implements SingletonInterface
     public function postFileMove(FileInterface $file, Folder $targetFolder, FolderInterface $originalFolder)
     {
         if ($file instanceof File) {
-            $this->initDatabaseConnection();
-            if ($this->queryBuilder) {
-                $queryBuilder = $this->queryBuilder->getQueryBuilderForTable('sys_file');
-                $res = $queryBuilder->update('sys_file')
-                    ->where(
-                        $queryBuilder->expr()->eq('uid', (int)$file->getUid())
-                    )
-                    ->set('last_move', time())
-                    ->execute();
-
-            } elseif ($this->databaseConnection) {
-                // LEGACY CODE
-                $this->databaseConnection->exec_UPDATEquery(
-                    'sys_file',
-                    'uid = ' . (int)$file->getUid(),
-                    [
-                        'last_move' => time()
-                    ]
-                );
-            }
-        }
-    }
-
-    /**
-     * @return void
-     */
-    protected function initDatabaseConnection()
-    {
-        if (class_exists('\TYPO3\CMS\Core\Database\ConnectionPool')) {
-            $this->queryBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);
-        } elseif ($GLOBALS['TYPO3_DB']) {
-            // LEGACY CODE
-            $this->databaseConnection = $GLOBALS['TYPO3_DB'];
+            $queryBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class)
+                ->getQueryBuilderForTable('sys_file');
+            $queryBuilder->update('sys_file')
+                ->where(
+                    $queryBuilder->expr()->eq('uid', (int)$file->getUid())
+                )
+                ->set('last_move', time())
+                ->execute();
         }
     }
 }

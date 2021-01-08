@@ -8,5 +8,8 @@
         "psr-4": {
             "WebVision\\WvFileCleanup\\": "Classes"
         }
+    },
+    "replace": {
+        "web-vision/wv_file_cleanup": "self.version"
     }
 }

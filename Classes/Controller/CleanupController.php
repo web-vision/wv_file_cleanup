@@ -13,12 +13,13 @@ namespace WebVision\WvFileCleanup\Controller;
  *
  * The TYPO3 project - inspiring people to share!
  */
+
+use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
-use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\Exception;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
@@ -26,9 +27,6 @@ use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
-use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
-
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 /**
  * Class CleanupController
@@ -78,7 +76,7 @@ class CleanupController extends ActionController
         parent::initializeView($view);
         if ($view instanceof BackendTemplateView) {
             $pageRenderer = $this->view->getModuleTemplate()->getPageRenderer();
-            $pageRenderer->loadRequireJsModule('TYPO3/CMS/Backend/ClickMenu');
+            $pageRenderer->loadRequireJsModule('TYPO3/CMS/Backend/ContextMenu');
             $pageRenderer->loadRequireJsModule('TYPO3/CMS/WvFileCleanup/Cleanup');
             $pageRenderer->addJsInlineCode(
                 'FileCleanup',
@@ -107,22 +105,8 @@ class CleanupController extends ActionController
      */
     public function initializeObject()
     {
-        $mainVersion = explode('.', TYPO3_branch)[0];
-        switch ($mainVersion) {
-            case '7':
-                $langResourcePath = 'EXT:lang/';
-                $filelistResourcePath = 'EXT:lang/';
-            break;
-            case '8':
-                $langResourcePath = 'EXT:lang/Resources/Private/Language/';
-                $filelistResourcePath = 'EXT:lang/Resources/Private/Language/';
-            break;
-            default:
-                // 9 and above
-                $langResourcePath = 'EXT:core/Resources/Private/Language/';
-                $filelistResourcePath = 'EXT:filelist/Resources/Private/Language/';
-            break;
-        }
+        $langResourcePath = 'EXT:core/Resources/Private/Language/';
+        $filelistResourcePath = 'EXT:filelist/Resources/Private/Language/';
         $this->getLanguageService()->includeLLFile($langResourcePath . 'locallang_core.xlf');
         $this->getLanguageService()->includeLLFile($langResourcePath . 'locallang_misc.xlf');
         $this->getLanguageService()->includeLLFile($filelistResourcePath . 'locallang_mod_file_list.xlf');
@@ -175,10 +159,10 @@ class CleanupController extends ActionController
             $this->folder = null;
             $this->addFlashMessage(
                 sprintf(
-                    $this->getLanguageService()->getLL('missingFolderPermissionsMessage', true),
+                    $this->getLanguageService()->getLL('missingFolderPermissionsMessage'),
                     htmlspecialchars($combinedIdentifier)
                 ),
-                $this->getLanguageService()->getLL('missingFolderPermissionsTitle', true),
+                $this->getLanguageService()->getLL('missingFolderPermissionsTitle'),
                 FlashMessage::NOTICE
             );
         } catch (Exception $fileException) {
@@ -195,17 +179,17 @@ class CleanupController extends ActionController
             }
             $this->addFlashMessage(
                 sprintf(
-                    $this->getLanguageService()->getLL('folderNotFoundMessage', true),
+                    $this->getLanguageService()->getLL('folderNotFoundMessage'),
                     htmlspecialchars($combinedIdentifier)
                 ),
-                $this->getLanguageService()->getLL('folderNotFoundTitle', true),
+                $this->getLanguageService()->getLL('folderNotFoundTitle'),
                 FlashMessage::NOTICE
             );
         } catch (\RuntimeException $e) {
             $this->folder = null;
             $this->addFlashMessage(
                 $e->getMessage() . ' (' . $e->getCode() . ')',
-                $this->getLanguageService()->getLL('folderNotFoundTitle', true),
+                $this->getLanguageService()->getLL('folderNotFoundTitle'),
                 FlashMessage::NOTICE
             );
         }
@@ -275,9 +259,9 @@ class CleanupController extends ActionController
 
         // Refresh page
         $refreshLink = GeneralUtility::linkThisScript(
-            array(
+            [
                 'target' => rawurlencode($this->folder->getCombinedIdentifier())
-            )
+            ]
         );
         $buttonFactory = GeneralUtility::makeInstance(
             \TYPO3\CMS\Backend\Template\Components\Buttons\LinkButton::class
@@ -305,9 +289,10 @@ class CleanupController extends ActionController
                 $levelUpClick .= 'contentWindow.Tree.highlightActiveItem("file","folder';
                 $levelUpClick .= GeneralUtility::md5int($parentFolder->getCombinedIdentifier());
                 $levelUpClick .= '_"+top.fsMod.currentBank)';
+                $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
                 $levelUpButton = $buttonBar->makeLinkButton($buttonFactory)
                     ->setHref(
-                        BackendUtility::getModuleUrl(
+                        (string)$uriBuilder->buildUriFromRoute(
                             'file_WvFileCleanupCleanup',
                             ['id' => $parentFolder->getCombinedIdentifier()]
                         )
@@ -342,7 +327,7 @@ class CleanupController extends ActionController
             'displayThumbs' => [
                 'enabled' => $GLOBALS['TYPO3_CONF_VARS']['GFX']['thumbnails']
                     && $backendUserTsconfig['options.']['file_list.']['enableDisplayThumbnails'] === 'selectable',
-                'label' => $this->getLanguageService()->getLL('displayThumbs', true),
+                'label' => $this->getLanguageService()->getLL('displayThumbs'),
                 'html' => BackendUtility::getFuncCheck(
                     $this->folder ? $this->folder->getCombinedIdentifier() : '',
                     'SET[displayThumbs]',
@@ -355,7 +340,7 @@ class CleanupController extends ActionController
             ],
             'recursive' => [
                 'enabled' => true,
-                'label' => $this->getLanguageService()->getLL('search_folders_recursive', true),
+                'label' => $this->getLanguageService()->getLL('search_folders_recursive'),
                 'html' => BackendUtility::getFuncCheck(
                     $this->folder ? $this->folder->getCombinedIdentifier() : '',
                     'SET[recursive]',
@@ -408,10 +393,7 @@ class CleanupController extends ActionController
 
         if ($movedFilesCount) {
             $this->addFlashMessage(
-                str_replace('%d', $movedFilesCount, 'Moved %d files to recycler'),
-                '',
-                FlashMessage::OK,
-                true
+                str_replace('%d', $movedFilesCount, 'Moved %d files to recycler')
             );
         } else {
             $this->addFlashMessage(
@@ -462,7 +444,7 @@ class CleanupController extends ActionController
     /**
      * Returns an instance of LanguageService
      *
-     * @return \TYPO3\CMS\Lang\LanguageService
+     * @return \TYPO3\CMS\Core\Localization\LanguageService
      */
     protected function getLanguageService()
     {

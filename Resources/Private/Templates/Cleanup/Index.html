@@ -20,12 +20,12 @@
 				<tr data-uid="0" data-l10nparent="0">
 					<th nowrap="nowrap" class="col-checkbox"><input type="checkbox" class="checkbox js-cleanup-all" /></th>
 					<th nowrap="nowrap" class="col-icon"></th>
-					<th nowrap="nowrap" class="col-path">{fl:translate( key:'LLL:EXT:lang/locallang_mod_file_list.xlf:c_filepath' )}</th>
-					<th nowrap="nowrap" class="col-title">{fl:translate( key:'LLL:EXT:lang/locallang_mod_file_list.xlf:c_file' )}</th>
-					<th nowrap="nowrap">{fl:translate( key:'LLL:EXT:lang/locallang_mod_file_list.xlf:c_fileext' )}</th>
-					<th nowrap="nowrap">{fl:translate( key:'LLL:EXT:lang/locallang_mod_file_list.xlf:c_tstamp' )}</th>
-					<th nowrap="nowrap">{fl:translate( key:'LLL:EXT:lang/locallang_mod_file_list.xlf:c_size' )}</th>
-					<th nowrap="nowrap">{fl:translate( key:'LLL:EXT:lang/locallang_mod_file_list.xlf:c_rw' )}</th>
+					<th nowrap="nowrap" class="col-path">{f:translate( key:'LLL:EXT:filelist/Resources/Private/Language/locallang_mod_file_list.xlf:c_filepath' )}</th>
+					<th nowrap="nowrap" class="col-title">{f:translate( key:'LLL:EXT:filelist/Resources/Private/Language/locallang_mod_file_list.xlf:c_file' )}</th>
+					<th nowrap="nowrap">{f:translate( key:'LLL:EXT:filelist/Resources/Private/Language/locallang_mod_file_list.xlf:c_fileext' )}</th>
+					<th nowrap="nowrap">{f:translate( key:'LLL:EXT:filelist/Resources/Private/Language/locallang_mod_file_list.xlf:c_tstamp' )}</th>
+					<th nowrap="nowrap">{f:translate( key:'LLL:EXT:filelist/Resources/Private/Language/locallang_mod_file_list.xlf:c_size' )}</th>
+					<th nowrap="nowrap">{f:translate( key:'LLL:EXT:filelist/Resources/Private/Language/locallang_mod_file_list.xlf:c_rw' )}</th>
 					<th nowrap="nowrap">{f:translate( key:'LLL:EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf:last_know_usage' )}</th>
 				</tr>
 				</thead>
@@ -38,12 +38,12 @@
 						<td nowrap="nowrap" class="col-icon">
                             <f:if condition="{file.combinedIdentifier}">
                             <f:then>
-                                <fl:link.clickMenuOnIcon table="{file.combinedIdentifier}">
+                                <fl:link.clickMenuOnIcon uid="{file.combinedIdentifier}">
                                     {file.icon->f:format.raw()}
                                 </fl:link.clickMenuOnIcon>
                             </f:then>
                             <f:else>
-                                <fl:link.clickMenuOnIcon table="{file.resource.storage.storageRecord.uid}:{file.resource.identifier}">
+                                <fl:link.clickMenuOnIcon uid="{file.resource.storage.storageRecord.uid}:{file.resource.identifier}">
                                     {file.icon->f:format.raw()}
                                 </fl:link.clickMenuOnIcon>
                             </f:else>
@@ -65,7 +65,7 @@
 						<td nowrap="nowrap">{file.lastModified}</td>
 						<td nowrap="nowrap">{file.size}</td>
 						<td nowrap="nowrap">
-							<f:if condition="{file.isReadable}"><strong class="text-danger">{fl:translate( key:'LLL:EXT:lang/locallang_mod_file_list.xlf:read' )}</strong></f:if><f:if condition="{file.isWritable}"><strong class="text-danger">{fl:translate( key:'LLL:EXT:lang/locallang_mod_file_list.xlf:write' )}</strong></f:if>
+							<f:if condition="{file.isReadable}"><strong class="text-danger">{f:translate( key:'LLL:EXT:filelist/Resources/Private/Language/locallang_mod_file_list.xlf:read' )}</strong></f:if><f:if condition="{file.isWritable}"><strong class="text-danger">{f:translate( key:'LLL:EXT:filelist/Resources/Private/Language/locallang_mod_file_list.xlf:write' )}</strong></f:if>
 						</td>
 						<td nowrap="nowrap">
 							<f:if condition="{file.lastReferenceTimestamp}">

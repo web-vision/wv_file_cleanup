@@ -13,13 +13,16 @@ namespace WebVision\WvFileCleanup\Domain\Repository;
  *
  * The TYPO3 project - inspiring people to share!
  */
+
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileInterface;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
+use TYPO3\CMS\Extbase\Utility\ExtensionUtility;
 use WebVision\WvFileCleanup\FileFacade;
 
 /**
@@ -37,26 +40,16 @@ class FileRepository implements SingletonInterface
     /**
      * @var \TYPO3\CMS\Core\Database\ConnectionPool
      */
-    protected $queryBuilder = null;
-
-    /**
-     * @var \TYPO3\CMS\Core\Database\DatabaseConnection
-     */
-    protected $databaseConnection = null;
+    protected $connection = null;
 
     /**
      * FileRepository constructor
      */
     public function __construct()
     {
-        $configuration = [];
-        if (!empty($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['wv_file_cleanup'])) {
-            $configuration = @unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['wv_file_cleanup']);
-        }
-        if (!empty($configuration['fileNameDenyPattern'])) {
-            $this->fileNameDenyPattern = $configuration['fileNameDenyPattern'];
-        }
-        $this->initDatabaseConnection();
+        $this->connection = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);
+        $this->fileNameDenyPattern = GeneralUtility::makeInstance(ExtensionConfiguration::class)
+            ->get('wv_file_cleanup', 'fileNameDenyPattern');
     }
 
     /**
@@ -154,59 +147,55 @@ class FileRepository implements SingletonInterface
      */
     public function getReferenceCount(File $file)
     {
-        if ($this->queryBuilder) {
-            // sys_refindex
-            $queryBuilder_1 = $this->queryBuilder->getQueryBuilderForTable('sys_refindex');
-            $res_1 = $queryBuilder_1
-                //->select('recuid,count(*) as count_files')
-                ->count('recuid')
-                ->from('sys_refindex')
-                ->where(
-                    $queryBuilder_1->expr()->eq('ref_table', '\'sys_file\''),
-                    $queryBuilder_1->expr()->eq('ref_uid', (int)$file->getUid()),
-                    $queryBuilder_1->expr()->eq('deleted', 0),
-                    $queryBuilder_1->expr()->neq('tablename', '\'sys_file_metadata\'')
+        // sys_refindex
+        $queryBuilder1 = $this->connection->getQueryBuilderForTable('sys_refindex');
+        $res1 = $queryBuilder1
+            ->count('recuid')
+            ->from('sys_refindex')
+            ->where(
+                $queryBuilder1->expr()->eq(
+                    'ref_table',
+                    $queryBuilder1->createNamedParameter('sys_file', Connection::PARAM_STR)
+                ),
+                $queryBuilder1->expr()->eq(
+                    'ref_uid',
+                    $queryBuilder1->createNamedParameter($file->getUid(), Connection::PARAM_INT)
+                ),
+                $queryBuilder1->expr()->eq(
+                    'deleted',
+                    $queryBuilder1->createNamedParameter(0, Connection::PARAM_INT)
+                ),
+                $queryBuilder1->expr()->neq(
+                    'tablename',
+                    $queryBuilder1->createNamedParameter('sys_file_metadata', Connection::PARAM_STR)
                 )
-                ->execute();
-            $refIndexCount = $res_1->fetch()['COUNT(`recuid`)'];
+            )
+            ->execute();
+        $refIndexCount = (int)$res1->fetchColumn(0);
 
-            // sys_file_reference
-            $queryBuilder_2 = $this->queryBuilder->getQueryBuilderForTable('sys_file_reference');
-            $res_2 = $queryBuilder_2
-                //->select('recuid,count(*) as count_files')
-                ->count('uid')
-                ->from('sys_file_reference')
-                ->where(
-                    $queryBuilder_2->expr()->eq('table_local', '\'sys_file\''),
-                    $queryBuilder_2->expr()->eq('uid_local', (int)$file->getUid()),
-                    $queryBuilder_2->expr()->eq('deleted', 0)
+        // sys_file_reference
+        $queryBuilder2 = $this->connection->getQueryBuilderForTable('sys_file_reference');
+        $res2 = $queryBuilder2
+            ->count('uid')
+            ->from('sys_file_reference')
+            ->where(
+                $queryBuilder2->expr()->eq(
+                    'table_local',
+                    $queryBuilder2->createNamedParameter('sys_file', Connection::PARAM_STR)
+                ),
+                $queryBuilder2->expr()->eq(
+                    'uid_local',
+                    $queryBuilder2->createNamedParameter($file->getUid(), Connection::PARAM_INT)
+                ),
+                $queryBuilder2->expr()->eq(
+                    'deleted',
+                    $queryBuilder2->createNamedParameter(0, Connection::PARAM_INT)
                 )
-                ->execute();
-            $fileReferenceCount = $res_2->fetch()['COUNT(`uid`)'];
+            )
+            ->execute();
+        $fileReferenceCount = (int)$res2->fetchColumn(0);
 
-        } elseif ($this->databaseConnection) {
-            // LEGACY CODE
-            
-            // sys_refindex
-            $refIndexCount = $this->databaseConnection->exec_SELECTcountRows(
-                'recuid',
-                'sys_refindex',
-                'ref_table=\'sys_file\''
-                . ' AND ref_uid=' . (int)$file->getUid()
-                . ' AND deleted=0'
-                . ' AND tablename != \'sys_file_metadata\''
-            );
-
-            // sys_file_reference
-            $fileReferenceCount = $this->databaseConnection->exec_SELECTcountRows(
-                'uid',
-                'sys_file_reference',
-                'table_local=\'sys_file\''
-                . ' AND uid_local=' . (int)$file->getUid()
-                . ' AND deleted=0'
-            );
-        }
-        return max((int)$refIndexCount, (int)$fileReferenceCount);
+        return max($refIndexCount, $fileReferenceCount);
     }
 
     /**
@@ -217,37 +206,16 @@ class FileRepository implements SingletonInterface
      */
     public function getLastMove(File $file)
     {
-        if ($this->queryBuilder) {
-            $queryBuilder_1 = $this->queryBuilder->getQueryBuilderForTable('sys_file');
-            $res = $queryBuilder_1
-                ->select('last_move')
-                ->from('sys_file')
-                ->where(
-                    $queryBuilder_1->expr()->eq('uid', (int)$file->getUid())
-                )
-                ->execute();
-            $row = $res->fetch();
-        } elseif ($this->databaseConnection) {
-            // LEGACY CODE
-            $row = $this->databaseConnection->exec_SELECTgetSingleRow(
-                'last_move',
-                'sys_file',
-                'uid=' . $file->getUid()
-            );
-        }
-        return $row ? $row['last_move'] : 0;
-    }
+        $queryBuilder = $this->connection->getQueryBuilderForTable('sys_file');
+        $res = $queryBuilder
+            ->select('last_move')
+            ->from('sys_file')
+            ->where(
+                $queryBuilder->expr()->eq('uid', (int)$file->getUid())
+            )
+            ->execute();
+        $row = $res->fetch();
 
-    /**
-     * @return void
-     */
-    protected function initDatabaseConnection()
-    {
-        if (class_exists('\TYPO3\CMS\Core\Database\ConnectionPool')) {
-            $this->queryBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);
-        } elseif ($GLOBALS['TYPO3_DB']) {
-            // LEGACY CODE
-            $this->databaseConnection = $GLOBALS['TYPO3_DB'];
-        }
+        return $row ? $row['last_move'] : 0;
     }
 }

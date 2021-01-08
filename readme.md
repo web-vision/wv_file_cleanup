@@ -1,22 +1,21 @@
 # About
 
-This extension should provide an easy way to remove unused files inside of TYPO3
-using FAL.
+This extension should provide an easy way to remove unused files in the TYPO3 FAL.
 
 
 # How to use
 
 After installing ext:wv_file_cleanup a new BE module appears under "File".
 
-Also the command controllers ``file:cleanup`` and ``file:emptyrecycler`` will be available.
+Also the symfony commands ``wv_file_cleanup:cleanup`` and ``wv_file_cleanup:emptyrecycler`` will be available.
 
 Example of using the command controllers::
 
-    ./typo3/cli_dispatch.phpsh extbase file:cleanup 1:/ --verbose
-    ./typo3/cli_dispatch.phpsh extbase file:emptyrecycler 1:/ --verbose
+    ./typo3/sysext/core/bin/typo3 wv_file_cleanup:cleanup 1:/ --verbose
+    ./typo3/sysext/core/bin/typo3 wv_file_cleanup:emptyrecycler 1:/ --verbose
 
-The command controller can be setup in the _scheduler_ as scheduler task.
-
+It is recommended to use the commands in a CLI context, but they can also be setup in the _scheduler_
+as scheduler tasks. 
 
 ## Options
 
@@ -36,4 +35,4 @@ To only match `*.pdf` files you can set the fileNameDenyPattern to ``/^(?!.*\b.p
 
 Can be tested by executing this from CLI: 
 
-    ./typo3/cli_dispatch.phpsh extbase file:cleanup 1:/ --verbose --dry-run --file-deny-pattern='/^(?!.*\b.pdf\b)/'
+    ./typo3/sysext/core/bin/typo3 wv_file_cleanup:cleanup 1:/ --verbose --dry-run --file-deny-pattern='/^(?!.*\b.pdf\b)/'
