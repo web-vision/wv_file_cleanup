@@ -30,7 +30,7 @@ class ClickMenuOnIconViewHelper extends \TYPO3Fluid\Fluid\Core\ViewHelper\Abstra
     public function initializeArguments()
     {
         $this->registerUniversalTagAttributes();
-        $this->registerArgument('table', 'string', 'Table Identifier', false);
+        $this->registerArgument('uid', 'string', 'File identifier');
     }
 
     /**
@@ -43,9 +43,9 @@ class ClickMenuOnIconViewHelper extends \TYPO3Fluid\Fluid\Core\ViewHelper\Abstra
      */
     public function render()
     {
-        $this->tag->addAttribute('class', 't3-js-clickmenutrigger ' . $this->arguments['class']);
-        $this->tag->addAttribute('data-table', $this->arguments['table']);
-        $this->tag->addAttribute('data-listframe', 1);
+        $this->tag->addAttribute('class', 't3js-contextmenutrigger ');
+        $this->tag->addAttribute('data-table', 'sys_file');
+        $this->tag->addAttribute('data-uid', $this->arguments['uid']);
         $this->tag->addAttribute('href', '#');
 
         $this->tag->setContent($this->renderChildren());

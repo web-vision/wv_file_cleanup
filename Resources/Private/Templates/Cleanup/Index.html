@@ -38,12 +38,12 @@
 						<td nowrap="nowrap" class="col-icon">
                             <f:if condition="{file.combinedIdentifier}">
                             <f:then>
-                                <fl:link.clickMenuOnIcon table="{file.combinedIdentifier}">
+                                <fl:link.clickMenuOnIcon uid="{file.combinedIdentifier}">
                                     {file.icon->f:format.raw()}
                                 </fl:link.clickMenuOnIcon>
                             </f:then>
                             <f:else>
-                                <fl:link.clickMenuOnIcon table="{file.resource.storage.storageRecord.uid}:{file.resource.identifier}">
+                                <fl:link.clickMenuOnIcon uid="{file.resource.storage.storageRecord.uid}:{file.resource.identifier}">
                                     {file.icon->f:format.raw()}
                                 </fl:link.clickMenuOnIcon>
                             </f:else>
