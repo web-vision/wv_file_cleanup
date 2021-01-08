@@ -39,7 +39,7 @@ class EmptyRecyclerCommand extends Command
                 '1 month'
             )
             ->addOption(
-                'fileDenyPattern',
+                'file-deny-pattern',
                 'f',
                 InputOption::VALUE_OPTIONAL,
                 'Regular expression to match (preg_match) the filename against. Matching files are excluded from cleanup. Example to match only *.pdf: /^(?!.*\b.pdf\b)/',
@@ -52,7 +52,7 @@ class EmptyRecyclerCommand extends Command
                 'Search sub folders of $folder recursive'
             )
             ->addOption(
-                'dryRun',
+                'dry-run',
                 'd',
                 InputOption::VALUE_NONE,
                 'Dry run do not really move files to recycler folder'
@@ -75,8 +75,8 @@ class EmptyRecyclerCommand extends Command
 
         $age = $age = strtotime('-' . $input->getOption('age'));
         $recursive = $input->getOption('recursive');
-        $dryRun = $input->getOption('dryRun');
-        $fileDenyPattern = $input->getOption('fileDenyPattern');
+        $dryRun = $input->getOption('dry-run');
+        $fileDenyPattern = $input->getOption('file-deny-pattern');
 
         if ($age === false) {
             $io->error('Value of \'age\' isn\'t recognized. See http://php.net/manual/en/function.strtotime.php for possible values');
