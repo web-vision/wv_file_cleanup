@@ -52,7 +52,7 @@ class EmptyRecyclerCommand extends Command
                 'Search sub folders of $folder recursive'
             )
             ->addOption(
-                'dry-run',
+                'dryRun',
                 'd',
                 InputOption::VALUE_NONE,
                 'Dry run do not really move files to recycler folder'
@@ -81,6 +81,10 @@ class EmptyRecyclerCommand extends Command
         if ($age === false) {
             $io->error('Value of \'age\' isn\'t recognized. See http://php.net/manual/en/function.strtotime.php for possible values');
             return 1;
+        }
+
+        if ($dryRun) {
+            $io->note('DryRun option active');
         }
 
         list($storageUid, $folderPath) = explode(':', $input->getArgument('folder'), 2);
