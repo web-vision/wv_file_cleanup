@@ -13,18 +13,18 @@
  * The TYPO3 project - inspiring people to share!
  */
 
-$EM_CONF[$_EXTKEY] = array (
+$EM_CONF[$_EXTKEY] = [
     'title' => 'FAL File cleanup',
     'description' => 'Enables cleanup of unused fal records.',
     'category' => 'misc',
-    'version' => '1.0.1',
+    'version' => '2.0.0',
     'state' => 'stable',
     'author' => 'Frans Saris',
     'author_email' => 'frans@beech.it,ricky@web-vision.de',
     'author_company' => 'beech.it, web-vision GmbH',
-    'constraints' => array (
-        'depends' => array (
+    'constraints' => [
+        'depends' => [
             'typo3' => '9.5.1-10.4.99',
-        ),
-    ),
-);
+        ],
+    ],
+];
