@@ -22,8 +22,8 @@ use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Utility\ExtensionUtility;
 use WebVision\WvFileCleanup\FileFacade;
+use WebVision\WvFileCleanup\Service\FileCollectionService;
 
 /**
  * Class FileRepository
@@ -43,11 +43,17 @@ class FileRepository implements SingletonInterface
     protected $connection = null;
 
     /**
+     * @var FileCollectionService
+     */
+    protected $fileCollectionService;
+
+    /**
      * FileRepository constructor
      */
     public function __construct()
     {
         $this->connection = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);
+        $this->fileCollectionService = GeneralUtility::makeInstance(FileCollectionService::class);
         $this->fileNameDenyPattern = GeneralUtility::makeInstance(ExtensionConfiguration::class)
             ->get('wv_file_cleanup', 'fileNameDenyPattern');
     }
@@ -63,6 +69,8 @@ class FileRepository implements SingletonInterface
      */
     public function findUnusedFile(Folder $folder, $recursive = true, $fileDenyPattern = null)
     {
+        $this->fileCollectionService->initialize($folder->getStorage()->getUid(), $folder->getIdentifier());
+
         $return = [];
         $files = $folder->getFiles(0, 0, Folder::FILTER_MODE_USE_OWN_AND_STORAGE_FILTERS, $recursive);
         if ($fileDenyPattern === null) {
@@ -83,6 +91,11 @@ class FileRepository implements SingletonInterface
         // filter out all files with references
         $files = array_filter($files, function (File $file) {
             return $this->getReferenceCount($file) === 0;
+        });
+
+        // Filter out all files that are used in FileCollections of type "folder" or "category"
+        $files = array_filter($files, function (File $file) {
+            return !$this->fileCollectionService->isFileCollectionFile($file);
         });
 
         foreach ($files as $file) {
