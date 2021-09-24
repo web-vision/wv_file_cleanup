@@ -1,2 +1,5 @@
 # cat=settings; type=string; label= LLL:EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xml:ext_conf.fileNameDenyPattern
 fileNameDenyPattern = /index.html/i
+
+# cat=settings; type=string; label= LLL:EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xml:ext_conf.pathDenyPattern
+pathDenyPattern =

@@ -38,6 +38,11 @@ class FileRepository implements SingletonInterface
     protected $fileNameDenyPattern = '';
 
     /**
+     * @var string
+     */
+    protected $pathDenyPattern = '';
+
+    /**
      * @var \TYPO3\CMS\Core\Database\ConnectionPool
      */
     protected $connection = null;
@@ -56,6 +61,8 @@ class FileRepository implements SingletonInterface
         $this->fileCollectionService = GeneralUtility::makeInstance(FileCollectionService::class);
         $this->fileNameDenyPattern = GeneralUtility::makeInstance(ExtensionConfiguration::class)
             ->get('wv_file_cleanup', 'fileNameDenyPattern');
+        $this->pathDenyPattern = GeneralUtility::makeInstance(ExtensionConfiguration::class)
+            ->get('wv_file_cleanup', 'pathDenyPattern');
     }
 
     /**
@@ -63,11 +70,11 @@ class FileRepository implements SingletonInterface
      *
      * @param Folder $folder
      * @param bool $recursive
-     * @param string $fileDenyPattern
+     * @param string|null $fileDenyPattern
      *
      * @return \WebVision\WvFileCleanup\FileFacade[]
      */
-    public function findUnusedFile(Folder $folder, $recursive = true, $fileDenyPattern = null)
+    public function findUnusedFile(Folder $folder, $recursive = true, string $fileDenyPattern = null, string $pathDenyPattern = null)
     {
         $this->fileCollectionService->initialize($folder->getStorage()->getUid(), $folder->getIdentifier());
 
@@ -76,13 +83,19 @@ class FileRepository implements SingletonInterface
         if ($fileDenyPattern === null) {
             $fileDenyPattern = $this->fileNameDenyPattern;
         }
+        if ($pathDenyPattern === null) {
+            $pathDenyPattern = $this->pathDenyPattern;
+        }
 
         // filer out all files in _recycler_ and _processed_ folder + check fileDenyPattern
-        $files = array_filter($files, function (FileInterface $file) use ($fileDenyPattern) {
+        $files = array_filter($files, function (FileInterface $file) use ($fileDenyPattern, $pathDenyPattern) {
             if ($file->getParentFolder()->getName() === '_recycler_' || $file instanceof ProcessedFile) {
                 return false;
             }
             if (!empty($fileDenyPattern) && preg_match($fileDenyPattern, $file->getName())) {
+                return false;
+            }
+            if (!empty($pathDenyPattern) && preg_match($pathDenyPattern, $file->getPublicUrl())) {
                 return false;
             }
             return true;

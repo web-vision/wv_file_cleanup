@@ -45,6 +45,12 @@ class CleanupCommand extends Command
                 '/index.html/i'
             )
             ->addOption(
+                'path-deny-pattern',
+                'p',
+                InputOption::VALUE_OPTIONAL,
+                'Regular expression to match (preg_match) the filepath against. Matching files are excluded from cleanup. Example to exclude "files" and "downloads" directory: /(files|downloads)/i'
+            )
+            ->addOption(
                 'recursive',
                 'r',
                 InputOption::VALUE_NONE,
@@ -76,6 +82,7 @@ class CleanupCommand extends Command
         $recursive = $input->getOption('recursive');
         $dryRun = $input->getOption('dry-run');
         $fileDenyPattern = $input->getOption('file-deny-pattern');
+        $pathDenyPattern = $input->getOption('path-deny-pattern');
 
         if ($age === false) {
             $io->error('Value of \'age\' isn\'t recognized. See http://php.net/manual/en/function.strtotime.php for possible values');
@@ -107,7 +114,7 @@ class CleanupCommand extends Command
         }
         $folderObject = $storage->getFolder($folderPath);
 
-        $files = $fileRepository->findUnusedFile($folderObject, $recursive, $fileDenyPattern);
+        $files = $fileRepository->findUnusedFile($folderObject, $recursive, $fileDenyPattern, $pathDenyPattern);
 
         if ($output->isVerbose()) {
             $io->newLine();
