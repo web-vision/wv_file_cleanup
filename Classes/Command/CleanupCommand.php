@@ -119,7 +119,7 @@ class CleanupCommand extends Command
         foreach ($files as $key => $file) {
             $fileAge = $file->getLastReferenceTimestamp() ?: $file->getResource()->getModificationTime();
             if ($output->isVerbose()) {
-                $io->writeln('File: ' . $file->getName() . ': ' . date('Ymd', $fileAge) . ' < ' . date('Ymd', $age));
+                $io->writeln('File: ' . $file->getPublicUrl() . ': ' . date('Ymd', $fileAge) . ' < ' . date('Ymd', $age));
             }
             // Remove all files "newer" than age from our array
             if ($fileAge > $age) {
