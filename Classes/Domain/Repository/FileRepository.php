@@ -22,8 +22,8 @@ use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Utility\ExtensionUtility;
 use WebVision\WvFileCleanup\FileFacade;
+use WebVision\WvFileCleanup\Service\FileCollectionService;
 
 /**
  * Class FileRepository
@@ -38,9 +38,19 @@ class FileRepository implements SingletonInterface
     protected $fileNameDenyPattern = '';
 
     /**
+     * @var string
+     */
+    protected $pathDenyPattern = '';
+
+    /**
      * @var \TYPO3\CMS\Core\Database\ConnectionPool
      */
     protected $connection = null;
+
+    /**
+     * @var FileCollectionService
+     */
+    protected $fileCollectionService;
 
     /**
      * FileRepository constructor
@@ -48,8 +58,11 @@ class FileRepository implements SingletonInterface
     public function __construct()
     {
         $this->connection = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);
+        $this->fileCollectionService = GeneralUtility::makeInstance(FileCollectionService::class);
         $this->fileNameDenyPattern = GeneralUtility::makeInstance(ExtensionConfiguration::class)
             ->get('wv_file_cleanup', 'fileNameDenyPattern');
+        $this->pathDenyPattern = GeneralUtility::makeInstance(ExtensionConfiguration::class)
+            ->get('wv_file_cleanup', 'pathDenyPattern');
     }
 
     /**
@@ -57,24 +70,32 @@ class FileRepository implements SingletonInterface
      *
      * @param Folder $folder
      * @param bool $recursive
-     * @param string $fileDenyPattern
+     * @param string|null $fileDenyPattern
      *
      * @return \WebVision\WvFileCleanup\FileFacade[]
      */
-    public function findUnusedFile(Folder $folder, $recursive = true, $fileDenyPattern = null)
+    public function findUnusedFile(Folder $folder, $recursive = true, string $fileDenyPattern = null, string $pathDenyPattern = null)
     {
+        $this->fileCollectionService->initialize($folder->getStorage()->getUid(), $folder->getIdentifier());
+
         $return = [];
         $files = $folder->getFiles(0, 0, Folder::FILTER_MODE_USE_OWN_AND_STORAGE_FILTERS, $recursive);
         if ($fileDenyPattern === null) {
             $fileDenyPattern = $this->fileNameDenyPattern;
         }
+        if ($pathDenyPattern === null) {
+            $pathDenyPattern = $this->pathDenyPattern;
+        }
 
         // filer out all files in _recycler_ and _processed_ folder + check fileDenyPattern
-        $files = array_filter($files, function (FileInterface $file) use ($fileDenyPattern) {
+        $files = array_filter($files, function (FileInterface $file) use ($fileDenyPattern, $pathDenyPattern) {
             if ($file->getParentFolder()->getName() === '_recycler_' || $file instanceof ProcessedFile) {
                 return false;
             }
             if (!empty($fileDenyPattern) && preg_match($fileDenyPattern, $file->getName())) {
+                return false;
+            }
+            if (!empty($pathDenyPattern) && preg_match($pathDenyPattern, $file->getPublicUrl())) {
                 return false;
             }
             return true;
@@ -83,6 +104,11 @@ class FileRepository implements SingletonInterface
         // filter out all files with references
         $files = array_filter($files, function (File $file) {
             return $this->getReferenceCount($file) === 0;
+        });
+
+        // Filter out all files that are used in FileCollections of type "folder" or "category"
+        $files = array_filter($files, function (File $file) {
+            return !$this->fileCollectionService->isFileCollectionFile($file);
         });
 
         foreach ($files as $file) {
