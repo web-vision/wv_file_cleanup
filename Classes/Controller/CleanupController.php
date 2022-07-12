@@ -1,4 +1,5 @@
 <?php
+
 namespace WebVision\WvFileCleanup\Controller;
 
 /*
@@ -14,19 +15,20 @@ namespace WebVision\WvFileCleanup\Controller;
  * The TYPO3 project - inspiring people to share!
  */
 
-use TYPO3\CMS\Backend\Routing\UriBuilder;
-use TYPO3\CMS\Backend\Template\Components\ButtonBar;
-use TYPO3\CMS\Backend\View\BackendTemplateView;
 use TYPO3\CMS\Core\Imaging\Icon;
-use TYPO3\CMS\Core\Imaging\IconFactory;
-use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Resource\Exception;
+use TYPO3\CMS\Core\Imaging\IconFactory;
+use TYPO3\CMS\Backend\Routing\UriBuilder;
+use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
+use TYPO3\CMS\Backend\View\BackendTemplateView;
+use TYPO3\CMS\Backend\Template\Components\ButtonBar;
+use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
+use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
 
 /**
  * Class CleanupController
@@ -40,9 +42,6 @@ class CleanupController extends ActionController
      */
     protected $folder;
 
-    /**
-     * @var array
-     */
     public $moduleSettings = [];
 
     /**
@@ -58,10 +57,14 @@ class CleanupController extends ActionController
     protected $defaultViewObjectName = BackendTemplateView::class;
 
     /**
-     * @var \WebVision\WvFileCleanup\Domain\Repository\FileRepository
-     * @TYPO3\CMS\Extbase\Annotation\Inject
+     * @var FileRepository
      */
     protected $fileRepository;
+
+    public function injectUserRepository(FileRepository $fileRepository)
+    {
+        $this->fileRepository = $fileRepository;
+    }
 
     /**
      * Initialize the view
@@ -150,7 +153,8 @@ class CleanupController extends ActionController
                 }
             }
 
-            if ($this->folder &&
+            if (
+                $this->folder &&
                 !$this->folder->getStorage()->isWithinFileMountBoundaries($this->folder)
             ) {
                 throw new \RuntimeException('Folder not accessible.', 1453971240);
@@ -194,7 +198,8 @@ class CleanupController extends ActionController
             );
         }
 
-        if ($this->folder &&
+        if (
+            $this->folder &&
             !$this->folder->getStorage()->checkFolderActionPermission('read', $this->folder)
         ) {
             $this->folder = null;
@@ -229,7 +234,7 @@ class CleanupController extends ActionController
     {
         $backendUser = $this->getBackendUser();
         $backendUserTsconfig = $this->getBackendUserTsconfig();
-        
+
         // Set predefined value for DisplayThumbnails:
         if ($backendUserTsconfig['options.']['file_list.']['enableDisplayThumbnails'] === 'activated') {
             $this->moduleSettings['displayThumbs'] = true;
@@ -278,7 +283,8 @@ class CleanupController extends ActionController
         try {
             $currentStorage = $this->folder->getStorage();
             $parentFolder = $this->folder->getParentFolder();
-            if ($parentFolder->getIdentifier() !== $this->folder->getIdentifier()
+            if (
+                $parentFolder->getIdentifier() !== $this->folder->getIdentifier()
                 && $currentStorage->isWithinFileMountBoundaries($parentFolder)
             ) {
                 $levelUpTitle = $this->getLanguageService()->getLL('labels.upOneLevel');
@@ -461,7 +467,7 @@ class CleanupController extends ActionController
         return $GLOBALS['BE_USER'];
     }
 
-     /**
+    /**
      * Returns an array of BE user tsconfig
      * @return array
      */

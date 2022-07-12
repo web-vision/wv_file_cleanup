@@ -10,16 +10,34 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use TYPO3\CMS\Core\Resource\Exception\FileOperationErrorException;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Object\ObjectManager;
 use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
-use WebVision\WvFileCleanup\FileFacade;
 
 /**
  * Class EmptyRecyclerCommand
  */
 class EmptyRecyclerCommand extends Command
 {
+    /**
+     * @var FileRepository
+     */
+    protected $fileRepository;
+
+    /**
+     * @var ResourceFactory
+     */
+    protected $resourceFactory;
+
+    public function injectFileRepository(FileRepository $fileRepository)
+    {
+        $this->fileRepository = $fileRepository;
+    }
+
+    public function injectResourceFactory(ResourceFactory $resourceFactory)
+    {
+        $this->resourceFactory = $resourceFactory;
+    }
+
+
     /**
      * Configuring the command options
      */
@@ -69,10 +87,6 @@ class EmptyRecyclerCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $io->title($this->getDescription());
 
-        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
-        $resourceFactory = $objectManager->get(ResourceFactory::class);
-        $fileRepository = $objectManager->get(FileRepository::class);
-
         $age = $age = strtotime('-' . $input->getOption('age'));
         $recursive = $input->getOption('recursive');
         $dryRun = $input->getOption('dry-run');
@@ -95,7 +109,7 @@ class EmptyRecyclerCommand extends Command
             $folderPath = $input->getArgument('folder');
         }
 
-        $storage = $resourceFactory->getStorageObject($storageUid);
+        $storage = $this->resourceFactory->getStorageObject($storageUid);
         $evaluatePermissions = $storage->getEvaluatePermissions();
         // Temporary disable permission checks
         $storage->setEvaluatePermissions(false);
@@ -108,7 +122,7 @@ class EmptyRecyclerCommand extends Command
         }
         $folderObject = $storage->getFolder($folderPath);
 
-        $files = $fileRepository->findAllFilesInRecyclerFolder($folderObject, $recursive, $fileDenyPattern);
+        $files = $this->fileRepository->findAllFilesInRecyclerFolder($folderObject, $recursive, $fileDenyPattern);
 
         if ($output->isVerbose()) {
             $io->newLine();
@@ -118,7 +132,7 @@ class EmptyRecyclerCommand extends Command
 
         /** @var File $file */
         foreach ($files as $key => $file) {
-            $fileAge = $fileRepository->getLastMove($file);
+            $fileAge = $this->fileRepository->getLastMove($file);
             // Fallback to modification time
             if (!$fileAge) {
                 $fileAge = $file->getModificationTime();
