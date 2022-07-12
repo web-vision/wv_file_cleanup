@@ -1,5 +1,5 @@
 <?php
-namespace WebVision\WvFileCleanup\Slot;
+namespace WebVision\WvFileCleanup\Listener;
 
 /*
  * This file is part of the TYPO3 CMS project.
@@ -14,28 +14,21 @@ namespace WebVision\WvFileCleanup\Slot;
  * The TYPO3 project - inspiring people to share!
  */
 use TYPO3\CMS\Core\Resource\File;
-use TYPO3\CMS\Core\Resource\FileInterface;
-use TYPO3\CMS\Core\Resource\Folder;
-use TYPO3\CMS\Core\Resource\FolderInterface;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Resource\Event\AfterFileMovedEvent;
 
 /**
- * Class ResourceStorage
- *
  * @author Frans Saris <t3ext@beech.it>
  */
-class ResourceStorageSlots implements SingletonInterface
+class ResourceStorageListener implements SingletonInterface
 {
     /**
-     * Post file move signal
-     *
-     * @param FileInterface $file
-     * @param Folder $targetFolder
-     * @param FolderInterface $originalFolder
+     * @param AfterFileMovedEvent $event
      */
-    public function postFileMove(FileInterface $file, Folder $targetFolder, FolderInterface $originalFolder)
+    public function postFileMove(AfterFileMovedEvent $event)
     {
+        $file = $event->getFile();
         if ($file instanceof File) {
             $queryBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class)
                 ->getQueryBuilderForTable('sys_file');

@@ -1,0 +1,16 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  WebVision\WvFileCleanup\:
+    resource: '../Classes/*'
+  WebVision\WvFileCleanup\Command\EmptyRecyclerCommand:
+     public: true
+
+  WebVision\WvFileCleanup\Listener\ResourceStorageListener:
+    tags:
+      - name: event.listener
+        method: 'postFileMove'
+        event:  TYPO3\CMS\Core\Resource\Event\AfterFileMovedEvent
