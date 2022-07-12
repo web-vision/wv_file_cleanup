@@ -2,8 +2,11 @@
     "name": "web-vision/wv_file_cleanup",
     "type": "typo3-cms-extension",
     "description": "Enables cleanup of unused fal records.",
-    "homepage": "http://web-vision.de",
+    "homepage": "https://web-vision.de",
     "license": ["GPL-3.0+"],
+    "require": {
+        "typo3/cms-core": "^10.4 || ^11.5"
+    },
     "autoload": {
         "psr-4": {
             "WebVision\\WvFileCleanup\\": "Classes"
@@ -11,5 +14,10 @@
     },
     "replace": {
         "web-vision/wv_file_cleanup": "self.version"
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "wv_file_cleanup"
+        }
     }
 }
