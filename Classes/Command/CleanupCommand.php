@@ -19,6 +19,17 @@ use WebVision\WvFileCleanup\FileFacade;
  */
 class CleanupCommand extends Command
 {
+
+    /**
+     * @var FileRepository
+     */
+    protected $fileRepository;
+
+    public function injectFileRepository(FileRepository $fileRepository)
+    {
+        $this->fileRepository = $fileRepository;
+    }
+
     /**
      * Configuring the command options
      */
@@ -76,7 +87,6 @@ class CleanupCommand extends Command
 
         $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
         $resourceFactory = $objectManager->get(ResourceFactory::class);
-        $fileRepository = $objectManager->get(FileRepository::class);
 
         $age = $age = strtotime('-' . $input->getOption('age'));
         $recursive = $input->getOption('recursive');
@@ -114,7 +124,7 @@ class CleanupCommand extends Command
         }
         $folderObject = $storage->getFolder($folderPath);
 
-        $files = $fileRepository->findUnusedFile($folderObject, $recursive, $fileDenyPattern, $pathDenyPattern);
+        $files = $this->fileRepository->findUnusedFile($folderObject, $recursive, $fileDenyPattern, $pathDenyPattern);
 
         if ($output->isVerbose()) {
             $io->newLine();
