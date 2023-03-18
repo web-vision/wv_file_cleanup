@@ -1,4 +1,5 @@
 <?php
+
 namespace WebVision\WvFileCleanup\Domain\Repository;
 
 /*
@@ -27,8 +28,6 @@ use WebVision\WvFileCleanup\Service\FileCollectionService;
 
 /**
  * Class FileRepository
- *
- * @author Frans Saris <t3ext@beech.it>
  */
 class FileRepository implements SingletonInterface
 {
@@ -45,7 +44,7 @@ class FileRepository implements SingletonInterface
     /**
      * @var \TYPO3\CMS\Core\Database\ConnectionPool
      */
-    protected $connection = null;
+    protected $connection;
 
     /**
      * @var FileCollectionService

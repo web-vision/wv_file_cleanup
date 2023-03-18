@@ -1,4 +1,5 @@
 <?php
+
 namespace WebVision\WvFileCleanup\ViewHelpers\Link;
 
 /*
@@ -24,9 +25,6 @@ class ClickMenuOnIconViewHelper extends \TYPO3Fluid\Fluid\Core\ViewHelper\Abstra
      */
     protected $tagName = 'a';
 
-    /**
-     * @return void
-     */
     public function initializeArguments()
     {
         $this->registerUniversalTagAttributes();

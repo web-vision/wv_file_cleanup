@@ -1,4 +1,5 @@
 <?php
+
 namespace WebVision\WvFileCleanup\Command;
 
 use Symfony\Component\Console\Command\Command;
@@ -36,7 +37,6 @@ class EmptyRecyclerCommand extends Command
     {
         $this->resourceFactory = $resourceFactory;
     }
-
 
     /**
      * Configuring the command options
@@ -101,7 +101,7 @@ class EmptyRecyclerCommand extends Command
             $io->note('DryRun option active');
         }
 
-        list($storageUid, $folderPath) = explode(':', $input->getArgument('folder'), 2);
+        [$storageUid, $folderPath] = explode(':', $input->getArgument('folder'), 2);
 
         // Fallback for when only a path is given
         if (!is_numeric($storageUid)) {
@@ -164,7 +164,6 @@ class EmptyRecyclerCommand extends Command
                 }
             }
             $io->writeln('Deleted ' . $deletedFilesCount . ' file(s) from recycler folders');
-
         }
 
         // Restore permissions
@@ -173,5 +172,4 @@ class EmptyRecyclerCommand extends Command
         $io->success('All done!');
         return 0;
     }
-
 }

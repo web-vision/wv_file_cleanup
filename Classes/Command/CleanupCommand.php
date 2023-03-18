@@ -1,4 +1,5 @@
 <?php
+
 namespace WebVision\WvFileCleanup\Command;
 
 use Symfony\Component\Console\Command\Command;
@@ -19,7 +20,6 @@ use WebVision\WvFileCleanup\FileFacade;
  */
 class CleanupCommand extends Command
 {
-
     /**
      * @var FileRepository
      */
@@ -103,7 +103,7 @@ class CleanupCommand extends Command
             $io->note('DryRun option active');
         }
 
-        list($storageUid, $folderPath) = explode(':', $input->getArgument('folder'), 2);
+        [$storageUid, $folderPath] = explode(':', $input->getArgument('folder'), 2);
 
         // Fallback for when only a path is given
         if (!is_numeric($storageUid)) {

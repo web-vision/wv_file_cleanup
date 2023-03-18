@@ -1,4 +1,5 @@
 <?php
+
 namespace WebVision\WvFileCleanup\Service;
 
 use TYPO3\CMS\Core\Database\Connection;

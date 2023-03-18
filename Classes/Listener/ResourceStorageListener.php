@@ -1,4 +1,5 @@
 <?php
+
 namespace WebVision\WvFileCleanup\Listener;
 
 /*
@@ -13,14 +14,11 @@ namespace WebVision\WvFileCleanup\Listener;
  *
  * The TYPO3 project - inspiring people to share!
  */
+use TYPO3\CMS\Core\Resource\Event\AfterFileMovedEvent;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Resource\Event\AfterFileMovedEvent;
 
-/**
- * @author Frans Saris <t3ext@beech.it>
- */
 class ResourceStorageListener implements SingletonInterface
 {
     /**
