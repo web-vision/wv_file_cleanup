@@ -9,6 +9,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use TYPO3\CMS\Core\Resource\Exception\FileOperationErrorException;
+use TYPO3\CMS\Core\Resource\Exception\InsufficientFolderAccessPermissionsException;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
@@ -28,12 +29,12 @@ class EmptyRecyclerCommand extends Command
      */
     protected $resourceFactory;
 
-    public function injectFileRepository(FileRepository $fileRepository)
+    public function injectFileRepository(FileRepository $fileRepository): void
     {
         $this->fileRepository = $fileRepository;
     }
 
-    public function injectResourceFactory(ResourceFactory $resourceFactory)
+    public function injectResourceFactory(ResourceFactory $resourceFactory): void
     {
         $this->resourceFactory = $resourceFactory;
     }
@@ -41,7 +42,7 @@ class EmptyRecyclerCommand extends Command
     /**
      * Configuring the command options
      */
-    public function configure()
+    protected function configure(): void
     {
         $this->setDescription('Empty recycler folders')
             ->addArgument(
@@ -78,11 +79,9 @@ class EmptyRecyclerCommand extends Command
     }
 
     /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return int|void|null
+     * @throws InsufficientFolderAccessPermissionsException
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
         $io->title($this->getDescription());
@@ -93,8 +92,8 @@ class EmptyRecyclerCommand extends Command
         $fileDenyPattern = $input->getOption('file-deny-pattern');
 
         if ($age === false) {
-            $io->error('Value of \'age\' isn\'t recognized. See http://php.net/manual/en/function.strtotime.php for possible values');
-            return 1;
+            $io->error('Value of \'age\' isn\'t recognized. See https://php.net/manual/en/function.strtotime.php for possible values');
+            return Command::FAILURE;
         }
 
         if ($dryRun) {
@@ -130,7 +129,6 @@ class EmptyRecyclerCommand extends Command
             $io->newLine();
         }
 
-        /** @var File $file */
         foreach ($files as $key => $file) {
             $fileAge = $this->fileRepository->getLastMove($file);
             // Fallback to modification time
@@ -154,7 +152,6 @@ class EmptyRecyclerCommand extends Command
 
         if (!$dryRun) {
             $deletedFilesCount = 0;
-            /** @var File $file */
             foreach ($files as $file) {
                 try {
                     $file->delete();
@@ -170,6 +167,6 @@ class EmptyRecyclerCommand extends Command
         $storage->setEvaluatePermissions($evaluatePermissions);
 
         $io->success('All done!');
-        return 0;
+        return Command::SUCCESS;
     }
 }

@@ -105,9 +105,11 @@ Options:
                 - mysqli (default)
                 - pdo_mysql
 
-    -p <7.4|8.0|8.1|8.2>
+    -p <7.2|7.3|7.4|8.0|8.1|8.2>
         Specifies the PHP minor version to be used
-            - 7.4: (default): use PHP 7.4
+            - 7.2: (default): use PHP 7.2
+            - 7.3: use PHP 7.3
+            - 7.4: use PHP 7.4
             - 8.0: use PHP 8.0
             - 8.0: use PHP 8.1
             - 8.0: use PHP 8.2
@@ -167,8 +169,8 @@ cd ../testing-docker || exit 1
 ROOT_DIR=$(readlink -f ${PWD}/../../)
 TEST_SUITE="unit"
 DBMS="sqlite"
-PHP_VERSION="7.4"
-TYPO3_VERSION="11"
+PHP_VERSION="7.2"
+TYPO3_VERSION="10"
 PHP_XDEBUG_ON=0
 PHP_XDEBUG_PORT=9003
 EXTRA_TEST_OPTIONS=""
@@ -195,7 +197,7 @@ while getopts ":s:d:a:p:n:t:e:xy:huv" OPT; do
         ;;
     p)
         PHP_VERSION=${OPTARG}
-        if ! [[ ${PHP_VERSION} =~ ^(7.4|8.0|8.1|8.2)$ ]]; then
+        if ! [[ ${PHP_VERSION} =~ ^(7.2|7.3|7.4|8.0|8.1|8.2)$ ]]; then
             INVALID_OPTIONS+=("p ${OPTARG}")
         fi
         ;;

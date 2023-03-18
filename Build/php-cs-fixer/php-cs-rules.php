@@ -31,7 +31,7 @@ return (new PhpCsFixer\Config())
             ]
         ],
         '@DoctrineAnnotation' => true,
-        '@PER' => true,
+        '@PSR12' => true,
         'array_syntax' => ['syntax' => 'short'],
         'blank_line_after_opening_tag' => true,
         'braces' => ['allow_single_line_closure' => true],
