@@ -63,9 +63,9 @@ class FileRepository implements SingletonInterface
      * @throws ResourceDoesNotExistException
      */
     public function findUnusedFile(
-        Folder   $folder,
-        bool     $recursive = true,
-        string   $fileDenyPattern = null,
+        Folder $folder,
+        bool $recursive = true,
+        string $fileDenyPattern = null,
         string $pathDenyPattern = null
     ): array {
         $this->fileCollectionService->initialize($folder->getStorage()->getUid(), $folder->getIdentifier());

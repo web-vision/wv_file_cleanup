@@ -13,9 +13,7 @@ use TYPO3\CMS\Core\Resource\Exception\ResourceDoesNotExistException;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Object\ObjectManager;
 use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
-use WebVision\WvFileCleanup\FileFacade;
 
 /**
  * Class CleanupCommand
@@ -25,7 +23,7 @@ class CleanupCommand extends Command
     /**
      * @var FileRepository
      */
-    protected $fileRepository;
+    protected FileRepository $fileRepository;
 
     public function injectFileRepository(FileRepository $fileRepository): void
     {

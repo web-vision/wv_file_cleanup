@@ -78,7 +78,6 @@
       <excludeFolder url="file://$MODULE_DIR$/.Build/vendor/sebastian/version" />
       <excludeFolder url="file://$MODULE_DIR$/.Build/vendor/sebastian/resource-operations" />
       <excludeFolder url="file://$MODULE_DIR$/.Build/vendor/sebastian/exporter" />
-      <excludeFolder url="file://$MODULE_DIR$/.Build/vendor/phpunit/php-token-stream" />
       <excludeFolder url="file://$MODULE_DIR$/.Build/vendor/phpunit/php-timer" />
       <excludeFolder url="file://$MODULE_DIR$/.Build/vendor/phpunit/php-text-template" />
       <excludeFolder url="file://$MODULE_DIR$/.Build/vendor/phpunit/phpunit" />
@@ -97,7 +96,6 @@
       <excludeFolder url="file://$MODULE_DIR$/.Build/vendor/phar-io/version" />
       <excludeFolder url="file://$MODULE_DIR$/.Build/vendor/phar-io/manifest" />
       <excludeFolder url="file://$MODULE_DIR$/.Build/vendor/egulias/email-validator" />
-      <excludeFolder url="file://$MODULE_DIR$/.Build/vendor/php-cs-fixer/diff" />
       <excludeFolder url="file://$MODULE_DIR$/.Build/vendor/doctrine/lexer" />
       <excludeFolder url="file://$MODULE_DIR$/.Build/vendor/doctrine/cache" />
       <excludeFolder url="file://$MODULE_DIR$/.Build/vendor/doctrine/annotations" />

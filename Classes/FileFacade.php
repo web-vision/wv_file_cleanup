@@ -1,4 +1,5 @@
 <?php
+
 namespace WebVision\WvFileCleanup;
 
 /*
@@ -44,13 +45,13 @@ class FileFacade
     /**
      * @var \TYPO3\CMS\Core\Database\ConnectionPool
      */
-    protected $queryBuilder = null;
+    protected $queryBuilder;
 
     /**
      * LEGACY CODE
      * @var
      */
-    protected $databaseConnection = null;
+    protected $databaseConnection;
 
     /**
      * @param \TYPO3\CMS\Core\Resource\FileInterface $resource
@@ -268,7 +269,6 @@ class FileFacade
                     ->orderBy('tstamp DESC')
                     ->execute();
                 $row = $result->fetchAllAssociative();
-
             }
 
             if (is_array($row)) {
@@ -294,9 +294,6 @@ class FileFacade
         return null;
     }
 
-    /**
-     * @return void
-     */
     protected function initDatabaseConnection()
     {
         $this->queryBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);

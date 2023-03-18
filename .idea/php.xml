@@ -85,7 +85,6 @@
       <path value="$PROJECT_DIR$/.Build/vendor/sebastian/version" />
       <path value="$PROJECT_DIR$/.Build/vendor/sebastian/resource-operations" />
       <path value="$PROJECT_DIR$/.Build/vendor/sebastian/exporter" />
-      <path value="$PROJECT_DIR$/.Build/vendor/phpunit/php-token-stream" />
       <path value="$PROJECT_DIR$/.Build/vendor/phpunit/php-timer" />
       <path value="$PROJECT_DIR$/.Build/vendor/phpunit/php-text-template" />
       <path value="$PROJECT_DIR$/.Build/vendor/phpunit/phpunit" />
@@ -104,7 +103,6 @@
       <path value="$PROJECT_DIR$/.Build/vendor/phar-io/version" />
       <path value="$PROJECT_DIR$/.Build/vendor/phar-io/manifest" />
       <path value="$PROJECT_DIR$/.Build/vendor/egulias/email-validator" />
-      <path value="$PROJECT_DIR$/.Build/vendor/php-cs-fixer/diff" />
       <path value="$PROJECT_DIR$/.Build/vendor/doctrine/lexer" />
       <path value="$PROJECT_DIR$/.Build/vendor/doctrine/cache" />
       <path value="$PROJECT_DIR$/.Build/vendor/doctrine/annotations" />
@@ -115,9 +113,21 @@
       <path value="$PROJECT_DIR$/.Build/vendor/doctrine/deprecations" />
       <path value="$PROJECT_DIR$/.Build/vendor/composer" />
       <path value="$PROJECT_DIR$/.Build/vendor/webmozart/assert" />
+      <path value="$PROJECT_DIR$/.Build/vendor/sebastian/cli-parser" />
+      <path value="$PROJECT_DIR$/.Build/vendor/sebastian/lines-of-code" />
+      <path value="$PROJECT_DIR$/.Build/vendor/sebastian/complexity" />
+      <path value="$PROJECT_DIR$/.Build/vendor/symfony/lock" />
+      <path value="$PROJECT_DIR$/.Build/vendor/symfony/rate-limiter" />
+      <path value="$PROJECT_DIR$/.Build/vendor/helhum/php-error-reporting" />
+      <path value="$PROJECT_DIR$/.Build/vendor/christian-riesen/base32" />
+      <path value="$PROJECT_DIR$/.Build/vendor/phpunit/php-invoker" />
+      <path value="$PROJECT_DIR$/.Build/vendor/dasprid/enum" />
+      <path value="$PROJECT_DIR$/.Build/vendor/phpstan/phpdoc-parser" />
+      <path value="$PROJECT_DIR$/.Build/vendor/bacon/bacon-qr-code" />
+      <path value="$PROJECT_DIR$/.Build/vendor/sebastian/code-unit" />
     </include_path>
   </component>
-  <component name="PhpProjectSharedConfiguration" php_language_level="7.2">
+  <component name="PhpProjectSharedConfiguration" php_language_level="7.4">
     <option name="suggestChangeDefaultLanguageLevel" value="false" />
   </component>
   <component name="PhpStanOptionsConfiguration">
