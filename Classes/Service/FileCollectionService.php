@@ -1,8 +1,10 @@
 <?php
+
 namespace WebVision\WvFileCleanup\Service;
 
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Resource\Exception\ResourceDoesNotExistException;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileCollectionRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -27,13 +29,9 @@ class FileCollectionService
     }
 
     /**
-     * Initializes the $fileUids array
-     *
-     * @param int $storage
-     * @param string $folder
-     * @throws \TYPO3\CMS\Core\Resource\Exception\ResourceDoesNotExistException
+     * @throws ResourceDoesNotExistException
      */
-    public function initialize(int $storage, string $folder)
+    public function initialize(int $storage, string $folder): void
     {
         $fileCollectionUids = array_unique(
             array_merge(
@@ -56,19 +54,18 @@ class FileCollectionService
         }
     }
 
-    /**
-     * Returns, if the given file is used in a FileCollection of the type "folder" or "category"
-     *
-     * @param File $file
-     * @return bool
-     */
     public function isFileCollectionFile(File $file): bool
     {
         return in_array($file->getUid(), $this->fileUids, true);
     }
 
-    private function getFileCollectionUidsByStorageAndFolder(int $storage, string $folder): array
-    {
+    /**
+     * @return array<int, int>
+     */
+    private function getFileCollectionUidsByStorageAndFolder(
+        int $storage,
+        string $folder
+    ): array {
         $connection = GeneralUtility::makeInstance(ConnectionPool::class);
         $queryBuilder = $connection->getQueryBuilderForTable('sys_file_collection');
         $queryResult = $queryBuilder
@@ -106,6 +103,9 @@ class FileCollectionService
         return $result;
     }
 
+    /**
+     * @return array<int, int>
+     */
     private function getFileCollectionUidsForCategoryCollections(): array
     {
         $connection = GeneralUtility::makeInstance(ConnectionPool::class);

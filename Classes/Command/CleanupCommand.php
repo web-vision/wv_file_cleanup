@@ -1,4 +1,5 @@
 <?php
+
 namespace WebVision\WvFileCleanup\Command;
 
 use Symfony\Component\Console\Command\Command;
@@ -7,25 +8,24 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use TYPO3\CMS\Core\Resource\Exception\InsufficientFolderAccessPermissionsException;
+use TYPO3\CMS\Core\Resource\Exception\ResourceDoesNotExistException;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Object\ObjectManager;
 use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
-use WebVision\WvFileCleanup\FileFacade;
 
 /**
  * Class CleanupCommand
  */
 class CleanupCommand extends Command
 {
-
     /**
      * @var FileRepository
      */
-    protected $fileRepository;
+    protected FileRepository $fileRepository;
 
-    public function injectFileRepository(FileRepository $fileRepository)
+    public function injectFileRepository(FileRepository $fileRepository): void
     {
         $this->fileRepository = $fileRepository;
     }
@@ -33,7 +33,7 @@ class CleanupCommand extends Command
     /**
      * Configuring the command options
      */
-    public function configure()
+    protected function configure(): void
     {
         $this->setDescription('Cleanup un-used files')
             ->addArgument(
@@ -76,17 +76,15 @@ class CleanupCommand extends Command
     }
 
     /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return int|void|null
+     * @throws InsufficientFolderAccessPermissionsException
+     * @throws ResourceDoesNotExistException
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
         $io->title($this->getDescription());
 
-        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
-        $resourceFactory = $objectManager->get(ResourceFactory::class);
+        $resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
 
         $age = $age = strtotime('-' . $input->getOption('age'));
         $recursive = $input->getOption('recursive');
@@ -96,14 +94,14 @@ class CleanupCommand extends Command
 
         if ($age === false) {
             $io->error('Value of \'age\' isn\'t recognized. See http://php.net/manual/en/function.strtotime.php for possible values');
-            return 1;
+            return Command::FAILURE;
         }
 
         if ($dryRun) {
             $io->note('DryRun option active');
         }
 
-        list($storageUid, $folderPath) = explode(':', $input->getArgument('folder'), 2);
+        [$storageUid, $folderPath] = explode(':', $input->getArgument('folder'), 2);
 
         // Fallback for when only a path is given
         if (!is_numeric($storageUid)) {
@@ -132,7 +130,6 @@ class CleanupCommand extends Command
             $io->newLine();
         }
 
-        /** @var FileFacade $file */
         foreach ($files as $key => $file) {
             $fileAge = $file->getLastReferenceTimestamp() ?: $file->getResource()->getModificationTime();
             if ($output->isVerbose()) {
@@ -159,7 +156,9 @@ class CleanupCommand extends Command
                     $folder = $file->getParentFolder();
 
                     if (!$folder->hasFolder('_recycler_')) {
-                        $recycler = $folder->getStorage()->createFolder('_recycler_', $folder);
+                        $recycler = $folder
+                            ->getStorage()
+                            ->createFolder('_recycler_', $folder);
                     } else {
                         $recycler = $folder->getSubfolder('_recycler_');
                     }
@@ -175,6 +174,6 @@ class CleanupCommand extends Command
         $storage->setEvaluatePermissions($evaluatePermissions);
 
         $io->success('All done!');
-        return 0;
+        return Command::SUCCESS;
     }
 }

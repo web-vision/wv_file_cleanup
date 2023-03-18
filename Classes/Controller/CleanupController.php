@@ -15,26 +15,24 @@ namespace WebVision\WvFileCleanup\Controller;
  * The TYPO3 project - inspiring people to share!
  */
 
-use TYPO3\CMS\Core\Imaging\Icon;
-use TYPO3\CMS\Core\Page\PageRenderer;
-use TYPO3\CMS\Core\Resource\Exception;
-use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
-use TYPO3\CMS\Core\Messaging\FlashMessage;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Resource\ResourceFactory;
-use TYPO3\CMS\Core\Resource\ResourceStorage;
-use TYPO3\CMS\Backend\Utility\BackendUtility;
-use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
 use TYPO3\CMS\Backend\Template\ModuleTemplateFactory;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Imaging\Icon;
+use TYPO3\CMS\Core\Imaging\IconFactory;
+use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Core\Page\PageRenderer;
+use TYPO3\CMS\Core\Resource\Exception;
+use TYPO3\CMS\Core\Resource\ResourceFactory;
+use TYPO3\CMS\Core\Resource\ResourceStorage;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
+use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
 use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
 
 /**
  * Class CleanupController
- *
- * @author Frans Saris <t3ext@beech.it>
  */
 class CleanupController extends ActionController
 {
@@ -65,7 +63,7 @@ class CleanupController extends ActionController
         FileRepository $fileRepository,
         PageRenderer $pageRenderer,
         ModuleTemplateFactory $moduleTemplateFactory
-        ) {
+    ) {
         $this->fileRepository = $fileRepository;
         $this->pageRenderer = $pageRenderer;
         $this->moduleTemplateFactory = $moduleTemplateFactory;
@@ -85,12 +83,12 @@ class CleanupController extends ActionController
         $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/Backend/ContextMenu');
         $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/WvFileCleanup/Cleanup');
         $this->pageRenderer->addJsInlineCode(
-                    'FileCleanup',
-                    'function jumpToUrl(URL) {
+            'FileCleanup',
+            'function jumpToUrl(URL) {
                         window.location.href = URL;
                         return false;
                     }'
-                );
+        );
         $this->registerDocHeaderButtons();
 
         $pageRecord = [
@@ -104,8 +102,6 @@ class CleanupController extends ActionController
      * Incoming GET vars include id, pointer, table, imagemode
      *
      * @TODO: make var $combinedIdentifier compatible to version 9 (and 8?) and remove workaround in template
-     *
-     * @return void
      */
     public function initializeObject()
     {
@@ -211,8 +207,6 @@ class CleanupController extends ActionController
 
     /**
      * Setting the options/session variables
-     *
-     * @return void
      */
     protected function optionsConfig()
     {
@@ -228,8 +222,6 @@ class CleanupController extends ActionController
 
     /**
      * Initialize indexAction
-     *
-     * @return void
      */
     protected function initializeIndexAction()
     {
@@ -250,8 +242,6 @@ class CleanupController extends ActionController
 
     /**
      * Register doc header buttons
-     *
-     * @return void
      */
     protected function registerDocHeaderButtons()
     {
@@ -266,7 +256,7 @@ class CleanupController extends ActionController
         // Refresh page
         $refreshLink = GeneralUtility::linkThisScript(
             [
-                'target' => rawurlencode($this->folder->getCombinedIdentifier())
+                'target' => rawurlencode($this->folder->getCombinedIdentifier()),
             ]
         );
         $buttonFactory = GeneralUtility::makeInstance(
@@ -322,8 +312,6 @@ class CleanupController extends ActionController
 
     /**
      * Index action
-     *
-     * @return void
      */
     public function indexAction()
     {
@@ -368,8 +356,6 @@ class CleanupController extends ActionController
      * Cleanup files
      *
      * @param array $files
-     *
-     * @return void
      */
     public function cleanupAction(array $files)
     {
@@ -425,7 +411,6 @@ class CleanupController extends ActionController
      * @param int $severity Optional severity, must be one of \TYPO3\CMS\Core\Messaging\FlashMessage constants
      * @param bool $storeInSession Optional, defines whether the message should be stored in the session
      *
-     * @return void
      * @throws \InvalidArgumentException When the message body is no string
      */
     public function addFlashMessage(

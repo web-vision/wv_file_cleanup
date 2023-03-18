@@ -1,21 +1,22 @@
 # About
 
-This extension should provide an easy way to remove unused files in the TYPO3 FAL.
+This extension provides an easy way to remove unused files in the TYPO3 FAL.
 
 
 # How to use
 
 After installing ext:wv_file_cleanup a new BE module appears under "File".
 
-Also the symfony commands ``wv_file_cleanup:cleanup`` and ``wv_file_cleanup:emptyrecycler`` will be available.
+Also, the symfony commands ``wv_file_cleanup:cleanup`` and
+``wv_file_cleanup:emptyrecycler`` will be available.
 
 Example of using the command controllers::
 
     ./typo3/sysext/core/bin/typo3 wv_file_cleanup:cleanup 1:/ --verbose
     ./typo3/sysext/core/bin/typo3 wv_file_cleanup:emptyrecycler 1:/ --verbose
 
-It is recommended to use the commands in a CLI context, but they can also be setup in the _scheduler_
-as scheduler tasks. 
+It is recommended to use the commands in a CLI context, but they can also be
+setup in the _scheduler_ as scheduler tasks. 
 
 ## Options
 

@@ -1,21 +1,13 @@
 <?php
+
 namespace WebVision\WvFileCleanup\Domain\Repository;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
-
+use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationExtensionNotConfiguredException;
+use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationPathDoesNotExistException;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Database\Connection;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Resource\Exception\ResourceDoesNotExistException;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileInterface;
 use TYPO3\CMS\Core\Resource\Folder;
@@ -27,8 +19,6 @@ use WebVision\WvFileCleanup\Service\FileCollectionService;
 
 /**
  * Class FileRepository
- *
- * @author Frans Saris <t3ext@beech.it>
  */
 class FileRepository implements SingletonInterface
 {
@@ -43,9 +33,9 @@ class FileRepository implements SingletonInterface
     protected $pathDenyPattern = '';
 
     /**
-     * @var \TYPO3\CMS\Core\Database\ConnectionPool
+     * @var ConnectionPool
      */
-    protected $connection = null;
+    protected $connection;
 
     /**
      * @var FileCollectionService
@@ -53,11 +43,12 @@ class FileRepository implements SingletonInterface
     protected $fileCollectionService;
 
     /**
-     * FileRepository constructor
+     * @throws ExtensionConfigurationExtensionNotConfiguredException
+     * @throws ExtensionConfigurationPathDoesNotExistException
      */
     public function __construct()
     {
-        $this->connection = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);
+        $this->connection = GeneralUtility::makeInstance(ConnectionPool::class);
         $this->fileCollectionService = GeneralUtility::makeInstance(FileCollectionService::class);
         $this->fileNameDenyPattern = GeneralUtility::makeInstance(ExtensionConfiguration::class)
             ->get('wv_file_cleanup', 'fileNameDenyPattern');
@@ -68,14 +59,15 @@ class FileRepository implements SingletonInterface
     /**
      * Find all unused files
      *
-     * @param Folder $folder
-     * @param bool $recursive
-     * @param string|null $fileDenyPattern
-     *
-     * @return \WebVision\WvFileCleanup\FileFacade[]
+     * @return FileFacade[]
+     * @throws ResourceDoesNotExistException
      */
-    public function findUnusedFile(Folder $folder, $recursive = true, string $fileDenyPattern = null, string $pathDenyPattern = null)
-    {
+    public function findUnusedFile(
+        Folder $folder,
+        bool $recursive = true,
+        string $fileDenyPattern = null,
+        string $pathDenyPattern = null
+    ): array {
         $this->fileCollectionService->initialize($folder->getStorage()->getUid(), $folder->getIdentifier());
 
         $return = [];
@@ -127,8 +119,11 @@ class FileRepository implements SingletonInterface
      *
      * @return File[]
      */
-    public function findAllFilesInRecyclerFolder(Folder $folder, $recursive = true, $fileDenyPattern = null)
-    {
+    public function findAllFilesInRecyclerFolder(
+        Folder $folder,
+        bool $recursive = true,
+        string $fileDenyPattern = null
+    ): array {
         if ($fileDenyPattern === null) {
             $fileDenyPattern = $this->fileNameDenyPattern;
         }
@@ -164,14 +159,7 @@ class FileRepository implements SingletonInterface
         return $files;
     }
 
-    /**
-     * Get count of current references
-     *
-     * @param File $file
-     *
-     * @return int
-     */
-    public function getReferenceCount(File $file)
+    public function getReferenceCount(File $file): int
     {
         // sys_refindex
         $queryBuilder1 = $this->connection->getQueryBuilderForTable('sys_refindex');
@@ -216,13 +204,7 @@ class FileRepository implements SingletonInterface
         return max($refIndexCount, $fileReferenceCount);
     }
 
-    /**
-     * Get timestamp when file was last moved to another folder
-     *
-     * @param File $file
-     * @return int
-     */
-    public function getLastMove(File $file)
+    public function getLastMove(File $file): int
     {
         $queryBuilder = $this->connection->getQueryBuilderForTable('sys_file');
         $res = $queryBuilder
