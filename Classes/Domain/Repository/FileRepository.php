@@ -87,7 +87,7 @@ class FileRepository implements SingletonInterface
             $pathDenyPattern = $this->pathDenyPattern;
         }
 
-        // filer out all files in _recycler_ and _processed_ folder + check fileDenyPattern
+        // filter out all files in _recycler_ and _processed_ folder + check fileDenyPattern
         $files = array_filter($files, function (FileInterface $file) use ($fileDenyPattern, $pathDenyPattern) {
             if ($file->getParentFolder()->getName() === '_recycler_' || $file instanceof ProcessedFile) {
                 return false;
@@ -187,10 +187,6 @@ class FileRepository implements SingletonInterface
                     'ref_uid',
                     $queryBuilder1->createNamedParameter($file->getUid(), Connection::PARAM_INT)
                 ),
-                $queryBuilder1->expr()->eq(
-                    'deleted',
-                    $queryBuilder1->createNamedParameter(0, Connection::PARAM_INT)
-                ),
                 $queryBuilder1->expr()->neq(
                     'tablename',
                     $queryBuilder1->createNamedParameter('sys_file_metadata', Connection::PARAM_STR)
@@ -213,10 +209,6 @@ class FileRepository implements SingletonInterface
                     'uid_local',
                     $queryBuilder2->createNamedParameter($file->getUid(), Connection::PARAM_INT)
                 ),
-                $queryBuilder2->expr()->eq(
-                    'deleted',
-                    $queryBuilder2->createNamedParameter(0, Connection::PARAM_INT)
-                )
             )
             ->execute();
         $fileReferenceCount = (int)$res2->fetchColumn(0);

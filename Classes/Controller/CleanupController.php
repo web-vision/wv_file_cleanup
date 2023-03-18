@@ -16,6 +16,7 @@ namespace WebVision\WvFileCleanup\Controller;
  */
 
 use TYPO3\CMS\Core\Imaging\Icon;
+use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Resource\Exception;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
@@ -25,8 +26,8 @@ use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
-use TYPO3\CMS\Backend\View\BackendTemplateView;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
+use TYPO3\CMS\Backend\Template\ModuleTemplateFactory;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
 
@@ -45,57 +46,57 @@ class CleanupController extends ActionController
     public $moduleSettings = [];
 
     /**
-     * @var BackendTemplateView
+     * ModuleTemplate object
+     *
+     * @var ModuleTemplate
+     */
+    protected $moduleTemplate;
+
+    /**
+     * @var StandaloneView
      */
     protected $view;
 
-    /**
-     * BackendTemplateView Container
-     *
-     * @var BackendTemplateView
-     */
-    protected $defaultViewObjectName = BackendTemplateView::class;
+    protected PageRenderer $pageRenderer;
+    protected ModuleTemplateFactory $moduleTemplateFactory;
+    protected FileRepository $fileRepository;
 
-    /**
-     * @var FileRepository
-     */
-    protected $fileRepository;
-
-    public function injectUserRepository(FileRepository $fileRepository)
-    {
+    public function __construct(
+        FileRepository $fileRepository,
+        PageRenderer $pageRenderer,
+        ModuleTemplateFactory $moduleTemplateFactory
+        ) {
         $this->fileRepository = $fileRepository;
+        $this->pageRenderer = $pageRenderer;
+        $this->moduleTemplateFactory = $moduleTemplateFactory;
     }
 
+    public function initializeAction(): void
+    {
+        $this->moduleTemplate = $this->moduleTemplateFactory->create($this->request);
+    }
     /**
-     * Initialize the view
-     *
-     * @param ViewInterface $view The view
-     *
-     * @return void
+     * Assign default variables to view
+     * @param ViewInterface $view
+     * @todo v12: Change signature to TYPO3Fluid\Fluid\View\ViewInterface when extbase ViewInterface is dropped.
      */
     public function initializeView(ViewInterface $view)
     {
-        /** @var BackendTemplateView $view **/
-        parent::initializeView($view);
-        if ($view instanceof BackendTemplateView) {
-            $pageRenderer = $this->view->getModuleTemplate()->getPageRenderer();
-            $pageRenderer->loadRequireJsModule('TYPO3/CMS/Backend/ContextMenu');
-            $pageRenderer->loadRequireJsModule('TYPO3/CMS/WvFileCleanup/Cleanup');
-            $pageRenderer->addJsInlineCode(
-                'FileCleanup',
-                'function jumpToUrl(URL) {
-                    window.location.href = URL;
-                    return false;
-                }'
-            );
+        $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/Backend/ContextMenu');
+        $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/WvFileCleanup/Cleanup');
+        $this->pageRenderer->addJsInlineCode(
+                    'FileCleanup',
+                    'function jumpToUrl(URL) {
+                        window.location.href = URL;
+                        return false;
+                    }'
+                );
+        $this->registerDocHeaderButtons();
 
-            $this->registerDocHeaderButtons();
-
-            $pageRecord = [
-                'combined_identifier' => $this->folder->getCombinedIdentifier(),
-            ];
-            $this->view->getModuleTemplate()->getDocHeaderComponent()->setMetaInformation($pageRecord);
-        }
+        $pageRecord = [
+            'combined_identifier' => $this->folder->getCombinedIdentifier(),
+        ];
+        $this->moduleTemplate->getDocHeaderComponent()->setMetaInformation($pageRecord);
     }
 
     /**
@@ -255,10 +256,10 @@ class CleanupController extends ActionController
     protected function registerDocHeaderButtons()
     {
         /** @var ButtonBar $buttonBar **/
-        $buttonBar = $this->view->getModuleTemplate()->getDocHeaderComponent()->getButtonBar();
+        $buttonBar = $this->moduleTemplate->getDocHeaderComponent()->getButtonBar();
 
         /** @var IconFactory $iconFactory **/
-        $iconFactory = $this->view->getModuleTemplate()->getIconFactory();
+        $iconFactory = $this->moduleTemplate->getIconFactory();
 
         $lang = $this->getLanguageService();
 
@@ -358,6 +359,9 @@ class CleanupController extends ActionController
                 'checked' => $this->moduleSettings['recursive'],
             ],
         ]);
+
+        $this->moduleTemplate->setContent($this->view->render());
+        return $this->htmlResponse($this->moduleTemplate->renderContent());
     }
 
     /**

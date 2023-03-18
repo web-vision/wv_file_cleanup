@@ -8,7 +8,6 @@
 	<h1>{f:translate( key:'LLL:EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf:mlang_tabs_tab')}</h1>
 </f:section>
 
-<f:debug>{_all}</f:debug>
 <f:section name="content">
 	<f:form action="cleanup" method="post">
 	<f:if condition="{files->f:count()} > 0">
@@ -18,7 +17,7 @@
 			<table class="table table-striped table-hover">
 				<thead>
 				<tr data-uid="0" data-l10nparent="0">
-					<th nowrap="nowrap" class="col-checkbox"><input type="checkbox" class="checkbox js-cleanup-all" /></th>
+					<th nowrap="nowrap" class="col-checkbox"><input type="checkbox" class="checkbox js-cleanup-all" name="check-all"/><label for="check-all">Select All</label></th>
 					<th nowrap="nowrap" class="col-icon"></th>
 					<th nowrap="nowrap" class="col-path">{f:translate( key:'LLL:EXT:filelist/Resources/Private/Language/locallang_mod_file_list.xlf:c_filepath' )}</th>
 					<th nowrap="nowrap" class="col-title">{f:translate( key:'LLL:EXT:filelist/Resources/Private/Language/locallang_mod_file_list.xlf:c_file' )}</th>

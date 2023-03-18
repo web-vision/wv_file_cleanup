@@ -257,29 +257,18 @@ class FileFacade
 
             if ($this->queryBuilder) {
                 $queryBuilder = $this->queryBuilder->getQueryBuilderForTable('sys_file_reference');
-                $res = $queryBuilder
+                $result = $queryBuilder
                     ->select('tstamp')
                     ->from('sys_file_reference')
                     ->where(
-                        $queryBuilder_1->expr()->eq('table_local', '\'sys_file\''),
-                        $queryBuilder_1->expr()->eq('uid_local', (int)$this->resource->getProperty('uid')),
-                        $queryBuilder_1->expr()->eq('deleted', 1)
+                        $queryBuilder->expr()->eq('table_local', '\'sys_file\''),
+                        $queryBuilder->expr()->eq('uid_local', (int)$this->resource->getProperty('uid')),
+                        $queryBuilder->expr()->eq('deleted', 1)
                     )
                     ->orderBy('tstamp DESC')
                     ->execute();
-                $row = $res->fetch();
+                $row = $result->fetchAllAssociative();
 
-            } elseif ($this->databaseConnection) {
-                // LEGACY CODE
-                $row = $this->databaseConnection->exec_SELECTgetSingleRow(
-                    'tstamp',
-                    'sys_file_reference',
-                    'table_local=\'sys_file\''
-                    . ' AND uid_local=' . (int)$this->resource->getProperty('uid')
-                    . ' AND deleted=1',
-                    '',
-                    'tstamp DESC'
-                );
             }
 
             if (is_array($row)) {
@@ -310,12 +299,7 @@ class FileFacade
      */
     protected function initDatabaseConnection()
     {
-        if (class_exists('\TYPO3\CMS\Core\Database\ConnectionPool')) {
-            $this->queryBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);
-        } elseif ($GLOBALS['TYPO3_DB']) {
-            // LEGACY CODE
-            $this->databaseConnection = $GLOBALS['TYPO3_DB'];
-        }
+        $this->queryBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);
     }
 
     /**
