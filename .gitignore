@@ -1,2 +1,12 @@
 # Do not track OS generated files
 .DS_Store
+composer.lock
+composer.json.orig
+composer.json.testing
+/.config
+/Build/testing-docker/.env
+/.cache/
+/.Build/
+/public/
+/vendor/
+/.php-cs-fixer.cache
