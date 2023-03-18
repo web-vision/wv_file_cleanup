@@ -7,6 +7,12 @@
     "require": {
         "typo3/cms-core": "^10.4 || ^11.5"
     },
+    "require-dev": {
+        "typo3/testing-framework": "dev-7-composerinstaller5-fix",
+        "saschaegerer/phpstan-typo3": "^1.8",
+        "phpstan/phpstan": "^1.10",
+        "friendsofphp/php-cs-fixer": "^v3.14"
+    },
     "autoload": {
         "psr-4": {
             "WebVision\\WvFileCleanup\\": "Classes"
@@ -18,6 +24,15 @@
     "extra": {
         "typo3/cms": {
             "extension-key": "wv_file_cleanup"
+        }
+    },
+    "config": {
+        "vendor-dir": ".Build/vendor",
+        "bin-dir": ".Build/bin",
+        "allow-plugins": {
+            "typo3/cms-composer-installers": true,
+            "typo3/class-alias-loader": true,
+            "sbuerk/typo3-cmscomposerinstallers-testingframework-bridge": true
         }
     }
 }
