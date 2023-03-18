@@ -6,8 +6,18 @@ services:
 
   WebVision\WvFileCleanup\:
     resource: '../Classes/*'
+
   WebVision\WvFileCleanup\Command\EmptyRecyclerCommand:
-     public: true
+    tags:
+      - name: console.command
+        command: 'wv_file_cleanup:emptyrecycler'
+        schedulable: true
+
+  WebVision\WvFileCleanup\Command\CleanupCommand:
+    tags:
+      - name: console.command
+        command: 'wv_file_cleanup:cleanup'
+        schedulable: true
 
   WebVision\WvFileCleanup\Listener\ResourceStorageListener:
     tags:
