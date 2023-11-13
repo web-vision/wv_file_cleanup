@@ -11,7 +11,7 @@ $EM_CONF[$_EXTKEY] = [
     'author_company' => 'beech.it, web-vision GmbH',
     'constraints' => [
         'depends' => [
-            'typo3' => '10.4.1-11.5.99',
+            'typo3' => '11.5.1-12.4.99',
         ],
     ],
 ];
