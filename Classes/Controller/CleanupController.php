@@ -2,33 +2,30 @@
 
 namespace WebVision\WvFileCleanup\Controller;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
-
+use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
+use TYPO3\CMS\Backend\Template\ModuleTemplate;
 use TYPO3\CMS\Backend\Template\ModuleTemplateFactory;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
+use TYPO3\CMS\Core\Information\Typo3Version;
+use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Core\Messaging\FlashMessageQueue;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Resource\Exception;
+use TYPO3\CMS\Core\Resource\Exception\ExistingTargetFolderException;
+use TYPO3\CMS\Core\Resource\Exception\InsufficientFolderAccessPermissionsException;
+use TYPO3\CMS\Core\Resource\Exception\ResourceDoesNotExistException;
+use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
-use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
+use TYPO3Fluid\Fluid\View\ViewInterface;
 use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
 
 /**
@@ -36,49 +33,38 @@ use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
  */
 class CleanupController extends ActionController
 {
-    /**
-     * @var \TYPO3\CMS\Core\Resource\Folder
-     */
-    protected $folder;
+    protected ?Folder $folder;
 
-    public $moduleSettings = [];
+    public array $moduleSettings = [];
 
-    /**
-     * ModuleTemplate object
-     *
-     * @var ModuleTemplate
-     */
-    protected $moduleTemplate;
-
-    /**
-     * @var StandaloneView
-     */
-    protected $view;
+    protected ModuleTemplate $moduleTemplate;
 
     protected PageRenderer $pageRenderer;
+
     protected ModuleTemplateFactory $moduleTemplateFactory;
+
     protected FileRepository $fileRepository;
+
+    protected IconFactory $iconFactory;
 
     public function __construct(
         FileRepository $fileRepository,
         PageRenderer $pageRenderer,
-        ModuleTemplateFactory $moduleTemplateFactory
+        ModuleTemplateFactory $moduleTemplateFactory,
+        IconFactory $iconFactory
     ) {
         $this->fileRepository = $fileRepository;
         $this->pageRenderer = $pageRenderer;
         $this->moduleTemplateFactory = $moduleTemplateFactory;
+        $this->iconFactory = $iconFactory;
     }
 
     public function initializeAction(): void
     {
         $this->moduleTemplate = $this->moduleTemplateFactory->create($this->request);
     }
-    /**
-     * Assign default variables to view
-     * @param ViewInterface $view
-     * @todo v12: Change signature to TYPO3Fluid\Fluid\View\ViewInterface when extbase ViewInterface is dropped.
-     */
-    public function initializeView(ViewInterface $view)
+
+    public function initializeView(ViewInterface $view): void
     {
         $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/Backend/ContextMenu');
         $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/WvFileCleanup/Cleanup');
@@ -98,18 +84,15 @@ class CleanupController extends ActionController
     }
 
     /**
-     * Initialize variables, file object
-     * Incoming GET vars include id, pointer, table, imagemode
-     *
-     * @TODO: make var $combinedIdentifier compatible to version 9 (and 8?) and remove workaround in template
+     * @throws \TYPO3\CMS\Core\Exception
      */
-    public function initializeObject()
+    public function initializeObject(): void
     {
         $langResourcePath = 'EXT:core/Resources/Private/Language/';
-        $filelistResourcePath = 'EXT:filelist/Resources/Private/Language/';
+        $fileListResourcePath = 'EXT:filelist/Resources/Private/Language/';
         $this->getLanguageService()->includeLLFile($langResourcePath . 'locallang_core.xlf');
         $this->getLanguageService()->includeLLFile($langResourcePath . 'locallang_misc.xlf');
-        $this->getLanguageService()->includeLLFile($filelistResourcePath . 'locallang_mod_file_list.xlf');
+        $this->getLanguageService()->includeLLFile($fileListResourcePath . 'locallang_mod_file_list.xlf');
         $this->getLanguageService()->includeLLFile('EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf');
 
         // GPvars
@@ -136,7 +119,7 @@ class CleanupController extends ActionController
                     );
                 }
                 // Disallow the rendering of the processing folder (e.g. could be called manually)
-                if ($this->folder && $storage->isProcessingFolder($this->folder)) {
+                if ($storage->isProcessingFolder($this->folder)) {
                     $this->folder = $storage->getRootLevelFolder();
                 }
             } else {
@@ -150,10 +133,7 @@ class CleanupController extends ActionController
                 }
             }
 
-            if (
-                $this->folder &&
-                !$this->folder->getStorage()->isWithinFileMountBoundaries($this->folder)
-            ) {
+            if (!$this->folder->getStorage()->isWithinFileMountBoundaries($this->folder)) {
                 throw new \RuntimeException('Folder not accessible.', 1453971240);
             }
         } catch (Exception\InsufficientFolderAccessPermissionsException $permissionException) {
@@ -208,7 +188,7 @@ class CleanupController extends ActionController
     /**
      * Setting the options/session variables
      */
-    protected function optionsConfig()
+    protected function optionsConfig(): void
     {
         $this->moduleSettings = BackendUtility::getModuleData(
             [
@@ -223,7 +203,7 @@ class CleanupController extends ActionController
     /**
      * Initialize indexAction
      */
-    protected function initializeIndexAction()
+    protected function initializeIndexAction(): void
     {
         $backendUser = $this->getBackendUser();
         $backendUserTsconfig = $this->getBackendUserTsconfig();
@@ -236,22 +216,16 @@ class CleanupController extends ActionController
         }
         // If user never opened the list module, set the value for displayThumbs
         if (!isset($this->moduleSettings['displayThumbs'])) {
-            $this->moduleSettings['displayThumbs'] = $backendUser->uc['thumbnailsByDefault'];
+            $this->moduleSettings['displayThumbs'] = $backendUser->uc['thumbnailsByDefault'] ?? false;
         }
     }
 
     /**
      * Register doc header buttons
      */
-    protected function registerDocHeaderButtons()
+    protected function registerDocHeaderButtons(): void
     {
-        /** @var ButtonBar $buttonBar **/
         $buttonBar = $this->moduleTemplate->getDocHeaderComponent()->getButtonBar();
-
-        /** @var IconFactory $iconFactory **/
-        $iconFactory = $this->moduleTemplate->getIconFactory();
-
-        $lang = $this->getLanguageService();
 
         // Refresh page
         $refreshLink = GeneralUtility::linkThisScript(
@@ -266,7 +240,7 @@ class CleanupController extends ActionController
         $refreshButton = $buttonBar->makeLinkButton($buttonFactory)
             ->setHref($refreshLink)
             ->setTitle($buttonTitle)
-            ->setIcon($iconFactory->getIcon('actions-refresh', Icon::SIZE_SMALL));
+            ->setIcon($this->iconFactory->getIcon('actions-refresh', Icon::SIZE_SMALL));
 
         $buttonBar->addButton($refreshButton, ButtonBar::BUTTON_POSITION_RIGHT);
 
@@ -282,10 +256,6 @@ class CleanupController extends ActionController
                 if (!$levelUpTitle) {
                     $levelUpTitle = 'Up one level';
                 }
-                $levelUpClick = 'top.document.getElementsByName("navigation")[0].';
-                $levelUpClick .= 'contentWindow.Tree.highlightActiveItem("file","folder';
-                $levelUpClick .= GeneralUtility::md5int($parentFolder->getCombinedIdentifier());
-                $levelUpClick .= '_"+top.fsMod.currentBank)';
                 $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
                 $levelUpButton = $buttonBar->makeLinkButton($buttonFactory)
                     ->setHref(
@@ -294,9 +264,15 @@ class CleanupController extends ActionController
                             ['id' => $parentFolder->getCombinedIdentifier()]
                         )
                     )
-                    ->setOnClick($levelUpClick)
                     ->setTitle($levelUpTitle)
-                    ->setIcon($iconFactory->getIcon('actions-view-go-up', Icon::SIZE_SMALL));
+                    ->setIcon($this->iconFactory->getIcon('actions-view-go-up', Icon::SIZE_SMALL));
+                if ((new Typo3Version())->getMajorVersion() < 12) {
+                    $levelUpClick = 'top.document.getElementsByName("navigation")[0].';
+                    $levelUpClick .= 'contentWindow.Tree.highlightActiveItem("file","folder';
+                    $levelUpClick .= GeneralUtility::md5int($parentFolder->getCombinedIdentifier());
+                    $levelUpClick .= '_"+top.fsMod.currentBank)';
+                    $levelUpButton->setOnClick($levelUpClick);
+                }
                 $buttonBar->addButton($levelUpButton, ButtonBar::BUTTON_POSITION_LEFT, 1);
             }
         } catch (\Exception $e) {
@@ -305,17 +281,19 @@ class CleanupController extends ActionController
 
         // Shortcut
         if ($this->getBackendUser()->mayMakeShortcut()) {
-            $shortCutButton = $buttonBar->makeShortcutButton()->setModuleName('file_WvFileCleanupCleanup');
+            $shortCutButton = $buttonBar->makeShortcutButton()
+                ->setRouteIdentifier('file_WvFileCleanupCleanup')
+                ->setDisplayName('File cleanup');
             $buttonBar->addButton($shortCutButton, ButtonBar::BUTTON_POSITION_RIGHT);
         }
     }
 
     /**
-     * Index action
+     * @throws ResourceDoesNotExistException
      */
-    public function indexAction()
+    public function indexAction(): ResponseInterface
     {
-        $this->view->assign('files', $this->fileRepository->findUnusedFile($this->folder, $this->moduleSettings['recursive']));
+        $this->view->assign('files', $this->fileRepository->findUnusedFile($this->folder, $this->moduleSettings['recursive'] ?? false));
         $this->view->assign('folder', $this->folder);
         $backendUserTsconfig = $this->getBackendUserTsconfig();
         $this->view->assign('checkboxes', [
@@ -339,12 +317,12 @@ class CleanupController extends ActionController
                 'html' => BackendUtility::getFuncCheck(
                     $this->folder ? $this->folder->getCombinedIdentifier() : '',
                     'SET[recursive]',
-                    $this->moduleSettings['recursive'],
+                    $this->moduleSettings['recursive'] ?? false,
                     '',
                     '',
                     'id="checkRecursive"'
                 ),
-                'checked' => $this->moduleSettings['recursive'],
+                'checked' => $this->moduleSettings['recursive'] ?? false,
             ],
         ]);
 
@@ -356,8 +334,11 @@ class CleanupController extends ActionController
      * Cleanup files
      *
      * @param array $files
+     * @throws ExistingTargetFolderException
+     * @throws InsufficientFolderAccessPermissionsException
+     * @throws \TYPO3\CMS\Core\Exception
      */
-    public function cleanupAction(array $files)
+    public function cleanupAction(array $files): ResponseInterface
     {
         /** @var $resourceFactory ResourceFactory **/
         $resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
@@ -400,7 +381,7 @@ class CleanupController extends ActionController
             );
         }
 
-        $this->redirect('index');
+        return $this->redirect('index');
     }
 
     /**
@@ -412,13 +393,14 @@ class CleanupController extends ActionController
      * @param bool $storeInSession Optional, defines whether the message should be stored in the session
      *
      * @throws \InvalidArgumentException When the message body is no string
+     * @throws \TYPO3\CMS\Core\Exception
      */
     public function addFlashMessage(
         $messageBody,
         $messageTitle = '',
         $severity = \TYPO3\CMS\Core\Messaging\AbstractMessage::OK,
         $storeInSession = true
-    ) {
+    ): void {
         if (!is_string($messageBody)) {
             throw new \InvalidArgumentException(
                 'The message body must be of type string, "' . gettype($messageBody) . '" given.',
@@ -433,34 +415,23 @@ class CleanupController extends ActionController
             $severity,
             $storeInSession
         );
-        $this->controllerContext->getFlashMessageQueue('core.template.flashMessages')->enqueue($flashMessage);
+        GeneralUtility::makeInstance(FlashMessageQueue::class, 'core.template.flashMessages')->enqueue($flashMessage);
     }
 
-    /**
-     * Returns an instance of LanguageService
-     *
-     * @return \TYPO3\CMS\Core\Localization\LanguageService
-     */
-    protected function getLanguageService()
+    protected function getLanguageService(): LanguageService
     {
         return $GLOBALS['LANG'];
     }
 
-    /**
-     * Returns the current BE user.
-     *
-     * @return \TYPO3\CMS\Core\Authentication\BackendUserAuthentication
-     */
-    protected function getBackendUser()
+    protected function getBackendUser(): BackendUserAuthentication
     {
         return $GLOBALS['BE_USER'];
     }
 
     /**
-     * Returns an array of BE user tsconfig
-     * @return array
+     * @return array<int|string, mixed>
      */
-    protected function getBackendUserTsconfig()
+    protected function getBackendUserTsconfig(): array
     {
         return $this->getBackendUser()->getTSConfig();
     }
