@@ -24,3 +24,7 @@ services:
       - name: event.listener
         method: 'postFileMove'
         event:  TYPO3\CMS\Core\Resource\Event\AfterFileMovedEvent
+
+  WebVision\WvFileCleanup\Controller\CleanupController:
+    tags: [ 'backend.controller' ]
+

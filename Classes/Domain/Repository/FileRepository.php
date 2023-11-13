@@ -181,7 +181,7 @@ class FileRepository implements SingletonInterface
                 )
             )
             ->execute();
-        $refIndexCount = (int)$res1->fetchColumn(0);
+        $refIndexCount = (int)$res1->fetchOne();
 
         // sys_file_reference
         $queryBuilder2 = $this->connection->getQueryBuilderForTable('sys_file_reference');
@@ -199,7 +199,7 @@ class FileRepository implements SingletonInterface
                 ),
             )
             ->execute();
-        $fileReferenceCount = (int)$res2->fetchColumn(0);
+        $fileReferenceCount = (int)$res2->fetchOne();
 
         return max($refIndexCount, $fileReferenceCount);
     }

@@ -10,8 +10,11 @@ use TYPO3\CMS\Backend\Template\ModuleTemplateFactory;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Imaging\Icon;
+use TYPO3\CMS\Core\Imaging\IconFactory;
+use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Core\Messaging\FlashMessageQueue;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Resource\Exception;
 use TYPO3\CMS\Core\Resource\Exception\ExistingTargetFolderException;
@@ -22,7 +25,7 @@ use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
-use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
+use TYPO3Fluid\Fluid\View\ViewInterface;
 use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
 
 /**
@@ -42,14 +45,18 @@ class CleanupController extends ActionController
 
     protected FileRepository $fileRepository;
 
+    protected IconFactory $iconFactory;
+
     public function __construct(
         FileRepository $fileRepository,
         PageRenderer $pageRenderer,
-        ModuleTemplateFactory $moduleTemplateFactory
+        ModuleTemplateFactory $moduleTemplateFactory,
+        IconFactory $iconFactory
     ) {
         $this->fileRepository = $fileRepository;
         $this->pageRenderer = $pageRenderer;
         $this->moduleTemplateFactory = $moduleTemplateFactory;
+        $this->iconFactory = $iconFactory;
     }
 
     public function initializeAction(): void
@@ -219,7 +226,6 @@ class CleanupController extends ActionController
     protected function registerDocHeaderButtons(): void
     {
         $buttonBar = $this->moduleTemplate->getDocHeaderComponent()->getButtonBar();
-        $iconFactory = $this->moduleTemplate->getIconFactory();
 
         // Refresh page
         $refreshLink = GeneralUtility::linkThisScript(
@@ -234,7 +240,7 @@ class CleanupController extends ActionController
         $refreshButton = $buttonBar->makeLinkButton($buttonFactory)
             ->setHref($refreshLink)
             ->setTitle($buttonTitle)
-            ->setIcon($iconFactory->getIcon('actions-refresh', Icon::SIZE_SMALL));
+            ->setIcon($this->iconFactory->getIcon('actions-refresh', Icon::SIZE_SMALL));
 
         $buttonBar->addButton($refreshButton, ButtonBar::BUTTON_POSITION_RIGHT);
 
@@ -250,10 +256,6 @@ class CleanupController extends ActionController
                 if (!$levelUpTitle) {
                     $levelUpTitle = 'Up one level';
                 }
-                $levelUpClick = 'top.document.getElementsByName("navigation")[0].';
-                $levelUpClick .= 'contentWindow.Tree.highlightActiveItem("file","folder';
-                $levelUpClick .= GeneralUtility::md5int($parentFolder->getCombinedIdentifier());
-                $levelUpClick .= '_"+top.fsMod.currentBank)';
                 $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
                 $levelUpButton = $buttonBar->makeLinkButton($buttonFactory)
                     ->setHref(
@@ -262,9 +264,15 @@ class CleanupController extends ActionController
                             ['id' => $parentFolder->getCombinedIdentifier()]
                         )
                     )
-                    ->setOnClick($levelUpClick)
                     ->setTitle($levelUpTitle)
-                    ->setIcon($iconFactory->getIcon('actions-view-go-up', Icon::SIZE_SMALL));
+                    ->setIcon($this->iconFactory->getIcon('actions-view-go-up', Icon::SIZE_SMALL));
+                if ((new Typo3Version())->getMajorVersion() < 12) {
+                    $levelUpClick = 'top.document.getElementsByName("navigation")[0].';
+                    $levelUpClick .= 'contentWindow.Tree.highlightActiveItem("file","folder';
+                    $levelUpClick .= GeneralUtility::md5int($parentFolder->getCombinedIdentifier());
+                    $levelUpClick .= '_"+top.fsMod.currentBank)';
+                    $levelUpButton->setOnClick($levelUpClick);
+                }
                 $buttonBar->addButton($levelUpButton, ButtonBar::BUTTON_POSITION_LEFT, 1);
             }
         } catch (\Exception $e) {
@@ -273,7 +281,9 @@ class CleanupController extends ActionController
 
         // Shortcut
         if ($this->getBackendUser()->mayMakeShortcut()) {
-            $shortCutButton = $buttonBar->makeShortcutButton()->setModuleName('file_WvFileCleanupCleanup');
+            $shortCutButton = $buttonBar->makeShortcutButton()
+                ->setRouteIdentifier('file_WvFileCleanupCleanup')
+                ->setDisplayName('File cleanup');
             $buttonBar->addButton($shortCutButton, ButtonBar::BUTTON_POSITION_RIGHT);
         }
     }
@@ -283,7 +293,7 @@ class CleanupController extends ActionController
      */
     public function indexAction(): ResponseInterface
     {
-        $this->view->assign('files', $this->fileRepository->findUnusedFile($this->folder, $this->moduleSettings['recursive']));
+        $this->view->assign('files', $this->fileRepository->findUnusedFile($this->folder, $this->moduleSettings['recursive'] ?? false));
         $this->view->assign('folder', $this->folder);
         $backendUserTsconfig = $this->getBackendUserTsconfig();
         $this->view->assign('checkboxes', [
@@ -307,12 +317,12 @@ class CleanupController extends ActionController
                 'html' => BackendUtility::getFuncCheck(
                     $this->folder ? $this->folder->getCombinedIdentifier() : '',
                     'SET[recursive]',
-                    $this->moduleSettings['recursive'],
+                    $this->moduleSettings['recursive'] ?? false,
                     '',
                     '',
                     'id="checkRecursive"'
                 ),
-                'checked' => $this->moduleSettings['recursive'],
+                'checked' => $this->moduleSettings['recursive'] ?? false,
             ],
         ]);
 
@@ -328,7 +338,7 @@ class CleanupController extends ActionController
      * @throws InsufficientFolderAccessPermissionsException
      * @throws \TYPO3\CMS\Core\Exception
      */
-    public function cleanupAction(array $files): void
+    public function cleanupAction(array $files): ResponseInterface
     {
         /** @var $resourceFactory ResourceFactory **/
         $resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
@@ -371,7 +381,7 @@ class CleanupController extends ActionController
             );
         }
 
-        $this->redirect('index');
+        return $this->redirect('index');
     }
 
     /**
@@ -405,7 +415,7 @@ class CleanupController extends ActionController
             $severity,
             $storeInSession
         );
-        $this->controllerContext->getFlashMessageQueue('core.template.flashMessages')->enqueue($flashMessage);
+        GeneralUtility::makeInstance(FlashMessageQueue::class, 'core.template.flashMessages')->enqueue($flashMessage);
     }
 
     protected function getLanguageService(): LanguageService

@@ -255,6 +255,7 @@ class FileFacade
 
         if (!isset(self::$lastReferenceTimestamps[$uid])) {
             self::$lastReferenceTimestamps[$uid] = 0;
+            $row = null;
 
             if ($this->queryBuilder) {
                 $queryBuilder = $this->queryBuilder->getQueryBuilderForTable('sys_file_reference');
