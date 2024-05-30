@@ -236,7 +236,7 @@ class CleanupController extends ActionController
         }
         // If user never opened the list module, set the value for displayThumbs
         if (!isset($this->moduleSettings['displayThumbs'])) {
-            $this->moduleSettings['displayThumbs'] = $backendUser->uc['thumbnailsByDefault'];
+            $this->moduleSettings['displayThumbs'] = $backendUser->uc['thumbnailsByDefault'] ?? false;
         }
     }
 
@@ -315,7 +315,10 @@ class CleanupController extends ActionController
      */
     public function indexAction()
     {
-        $this->view->assign('files', $this->fileRepository->findUnusedFile($this->folder, $this->moduleSettings['recursive']));
+        $this->view->assign(
+            'files',
+            $this->fileRepository->findUnusedFile($this->folder, $this->moduleSettings['recursive'] ?? false)
+        );
         $this->view->assign('folder', $this->folder);
         $backendUserTsconfig = $this->getBackendUserTsconfig();
         $this->view->assign('checkboxes', [
@@ -339,12 +342,12 @@ class CleanupController extends ActionController
                 'html' => BackendUtility::getFuncCheck(
                     $this->folder ? $this->folder->getCombinedIdentifier() : '',
                     'SET[recursive]',
-                    $this->moduleSettings['recursive'],
+                    $this->moduleSettings['recursive'] ?? false,
                     '',
                     '',
                     'id="checkRecursive"'
                 ),
-                'checked' => $this->moduleSettings['recursive'],
+                'checked' => $this->moduleSettings['recursive'] ?? false,
             ],
         ]);
 
