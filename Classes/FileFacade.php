@@ -263,7 +263,6 @@ class FileFacade
                     ->select('tstamp')
                     ->from('sys_file_reference')
                     ->where(
-                        $queryBuilder->expr()->eq('table_local', '\'sys_file\''),
                         $queryBuilder->expr()->eq('uid_local', (int)$this->resource->getProperty('uid')),
                         $queryBuilder->expr()->eq('deleted', 1)
                     )

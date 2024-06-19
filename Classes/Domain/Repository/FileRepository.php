@@ -190,10 +190,6 @@ class FileRepository implements SingletonInterface
             ->from('sys_file_reference')
             ->where(
                 $queryBuilder2->expr()->eq(
-                    'table_local',
-                    $queryBuilder2->createNamedParameter('sys_file', Connection::PARAM_STR)
-                ),
-                $queryBuilder2->expr()->eq(
                     'uid_local',
                     $queryBuilder2->createNamedParameter($file->getUid(), Connection::PARAM_INT)
                 ),
