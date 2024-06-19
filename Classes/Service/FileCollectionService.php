@@ -70,7 +70,7 @@ class FileCollectionService
 
         $typo3Version = (new Typo3Version)->getMajorVersion();
 
-        if ($typo3Version <= 12) {
+        if ($typo3Version >= 12) {
             $queryResult = $this->getFilesLTS12($storage, $folder);
         } else {
             $queryResult = $this->getFilesLTS11($storage, $folder);
@@ -148,8 +148,6 @@ class FileCollectionService
      */
     private function getFilesLTS11($storage, $folder): array
     {
-        $connection = GeneralUtility::makeInstance(ConnectionPool::class);
-        $queryBuilder = $connection->getQueryBuilderForTable('sys_file_collection');
         $connection = GeneralUtility::makeInstance(ConnectionPool::class);
         $queryBuilder = $connection->getQueryBuilderForTable('sys_file_collection');
         $queryResult = $queryBuilder
