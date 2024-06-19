@@ -24,9 +24,6 @@
 			"WebVision\\WvFileCleanup\\Tests\\": "Tests"
 		}
 	},
-    "replace": {
-        "web-vision/wv_file_cleanup": "self.version"
-    },
     "extra": {
         "typo3/cms": {
             "extension-key": "wv_file_cleanup"
