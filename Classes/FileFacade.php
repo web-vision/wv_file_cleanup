@@ -2,31 +2,20 @@
 
 namespace WebVision\WvFileCleanup;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
-
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Imaging\Icon;
-use TYPO3\CMS\Core\Imaging\IconFactory;
+use TYPO3\CMS\Core\Resource\FileInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
- * Class FileFacade
- *
  * This class is meant to be a wrapper for Resource\File objects, which do not
- * provide necessary methods needed in the views of the filelist extension. It
+ * provide necessary methods needed in the views of the FileList extension. It
  * is a first approach to get rid of the FileList class that mixes up PHP,
  * HTML and JavaScript.
+ *
+ * This class is a DTO (DataTransferObject) albeit still containing some service
+ * like methods for now, which will be removed from this class. That means that
+ * using `DI` for this class is discouraged as this **must** be a newable class.
  */
 class FileFacade
 {
@@ -34,11 +23,13 @@ class FileFacade
      * Cache of last known reference timestamp for each file
      *
      * @var array
+     *
+     * @todo Static property caches are a bad thing and needs to be replaced with a runtime cache.
      */
     protected static $lastReferenceTimestamps = [];
 
     /**
-     * @var \TYPO3\CMS\Core\Resource\FileInterface
+     * @var FileInterface
      */
     protected $resource;
 
@@ -47,21 +38,18 @@ class FileFacade
      */
     protected $queryBuilder;
 
+    protected Icon $icon;
+
     /**
      * LEGACY CODE
      * @var
      */
     protected $databaseConnection;
 
-    protected IconFactory $iconFactory;
-
-    /**
-     * @param \TYPO3\CMS\Core\Resource\FileInterface $resource
-     */
-    public function __construct(\TYPO3\CMS\Core\Resource\FileInterface $resource)
+    public function __construct(FileInterface $resource, Icon $icon)
     {
         $this->resource = $resource;
-        $this->iconFactory = GeneralUtility::makeInstance(IconFactory::class);
+        $this->icon = $icon;
     }
 
     /**
@@ -70,11 +58,11 @@ class FileFacade
     public function getIcon()
     {
         $title = htmlspecialchars($this->resource->getName() . ' [' . (int)$this->resource->getProperty('uid') . ']');
-        return '<span title="' . $title . '">' . $this->iconFactory->getIconForResource($this->resource, Icon::SIZE_SMALL) . '</span>';
+        return '<span title="' . $title . '">' . $this->icon . '</span>';
     }
 
     /**
-     * @return \TYPO3\CMS\Core\Resource\FileInterface
+     * @return FileInterface
      */
     public function getResource()
     {
@@ -258,7 +246,11 @@ class FileFacade
         if (!isset(self::$lastReferenceTimestamps[$uid])) {
             self::$lastReferenceTimestamps[$uid] = 0;
             $row = null;
-
+            /**
+             * @todo $this->queryBuilder (ConnectionPool) seems not to be initialized at all, calling method
+             *       self::initDatabaseConnection() or similar and thus never evaluate sys_file_references
+             *       here making this dead code. Needs deeper investigation how this code ended up here.
+             */
             if ($this->queryBuilder) {
                 $queryBuilder = $this->queryBuilder->getQueryBuilderForTable('sys_file_reference');
                 $result = $queryBuilder
@@ -297,6 +289,9 @@ class FileFacade
         return null;
     }
 
+    /**
+     * @todo Method seems to be unused and not called within `EXT:wv_file_cleanup`. Verify and remove/migrate to DI.
+     */
     protected function initDatabaseConnection()
     {
         $this->queryBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);

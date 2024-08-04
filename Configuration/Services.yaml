@@ -6,6 +6,8 @@ services:
 
   WebVision\WvFileCleanup\:
     resource: '../Classes/*'
+    exclude:
+      - '../Classes/FileFacade.php'
 
   WebVision\WvFileCleanup\Command\EmptyRecyclerCommand:
     tags:
@@ -27,3 +29,6 @@ services:
 
   WebVision\WvFileCleanup\Controller\CleanupController:
     tags: [ 'backend.controller' ]
+
+  WebVision\WvFileCleanup\FileFacadeFactory:
+    public: true
