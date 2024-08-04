@@ -15,10 +15,13 @@ use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use WebVision\WvFileCleanup\FileFacade;
+use WebVision\WvFileCleanup\FileFacadeFactory;
 use WebVision\WvFileCleanup\Service\FileCollectionService;
 
 /**
- * Class FileRepository
+ * Provide FileList related methods.
+ *
+ * @internal and not part of public API.
  */
 class FileRepository implements SingletonInterface
 {
@@ -42,6 +45,8 @@ class FileRepository implements SingletonInterface
      */
     protected $fileCollectionService;
 
+    protected FileFacadeFactory $fileFacadeFactory;
+
     /**
      * @throws ExtensionConfigurationExtensionNotConfiguredException
      * @throws ExtensionConfigurationPathDoesNotExistException
@@ -50,6 +55,7 @@ class FileRepository implements SingletonInterface
     {
         $this->connection = GeneralUtility::makeInstance(ConnectionPool::class);
         $this->fileCollectionService = GeneralUtility::makeInstance(FileCollectionService::class);
+        $this->fileFacadeFactory = GeneralUtility::makeInstance(FileFacadeFactory::class);
         $this->fileNameDenyPattern = GeneralUtility::makeInstance(ExtensionConfiguration::class)
             ->get('wv_file_cleanup', 'fileNameDenyPattern');
         $this->pathDenyPattern = GeneralUtility::makeInstance(ExtensionConfiguration::class)
@@ -104,7 +110,9 @@ class FileRepository implements SingletonInterface
         });
 
         foreach ($files as $file) {
-            $return[] = new FileFacade($file);
+            if ($file instanceof FileInterface) {
+                $return[] = $this->fileFacadeFactory->forFileInterface($file);
+            }
         }
 
         return $return;

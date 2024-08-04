@@ -106,11 +106,6 @@ parameters:
 			path: ../../../Classes/Domain/Repository/FileRepository.php
 
 		-
-			message: "#^Access to an undefined property WebVision\\\\WvFileCleanup\\\\FileFacade\\:\\:\\$iconFactory\\.$#"
-			count: 2
-			path: ../../../Classes/FileFacade.php
-
-		-
 			message: "#^Cannot call method fetchAllAssociative\\(\\) on Doctrine\\\\DBAL\\\\Result\\|int\\.$#"
 			count: 1
 			path: ../../../Classes/FileFacade.php
