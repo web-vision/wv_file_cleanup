@@ -53,6 +53,8 @@ class FileFacade
      */
     protected $databaseConnection;
 
+    protected IconFactory $iconFactory;
+
     /**
      * @param \TYPO3\CMS\Core\Resource\FileInterface $resource
      */
