@@ -16,7 +16,28 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
 
 /**
+The symfony commands wv_file_cleanup:cleanup and wv_file_cleanup:emptyrecycler are available.
+
+Example of using the command controllers from CLI context:
+.vendor/bin/typo3 wv_file_cleanup:cleanup --help
+.vendor/bin/typo3 wv_file_cleanup:cleanup 1:/ -r --verbose
+.vendor/bin/typo3 wv_file_cleanup:cleanup 1:/Redaktion/Bilder/Aktuelles/2016/ -r --verbose --dry-run
+.vendor/bin/typo3  wv_file_cleanup:emptyrecycler 1:/ -a 1month --verbose
+To only match *.pdf files you can set the fileNameDenyPattern to /^(?!.*\b.pdf\b)/
+.vendor/bin/typo3  wv_file_cleanup:cleanup 1:/ --verbose --dry-run --file-deny-pattern='/^(?!.*\b.pdf\b)/'
+
+It is recommended to use the commands in a CLI context, but they can also be setup in the scheduler as scheduler tasks.
+
+Options
+You can configure an fileNameDenyPattern that holds a regular expression that is used to check the filename against. If the pattern matches the file is excluded from the cleanup and also not visible in het BE module.
+Default value is /index.html/i so all index.html files are excluded and can be adjusted in the extension configuration (see extension manager).
+The value can also be overwritten in the command controller (and scheduler task).
+ */
+
+/**
  * Class CleanupCommand
+ *
+ * @package WebVision\WvFileCleanup\Command
  */
 class CleanupCommand extends Command
 {
@@ -25,8 +46,9 @@ class CleanupCommand extends Command
      */
     protected FileRepository $fileRepository;
 
-    public function injectFileRepository(FileRepository $fileRepository): void
+    public function __construct(FileRepository $fileRepository)
     {
+        parent::__construct();
         $this->fileRepository = $fileRepository;
     }
 
@@ -76,6 +98,10 @@ class CleanupCommand extends Command
     }
 
     /**
+     * @param InputInterface  $input
+     * @param OutputInterface $output
+     *
+     * @return int
      * @throws InsufficientFolderAccessPermissionsException
      * @throws ResourceDoesNotExistException
      */

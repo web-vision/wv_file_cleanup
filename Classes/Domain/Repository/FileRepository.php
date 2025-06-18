@@ -14,6 +14,7 @@ use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use WebVision\WvFileCleanup\FileFacade;
 use WebVision\WvFileCleanup\Service\FileCollectionService;
 
@@ -59,6 +60,11 @@ class FileRepository implements SingletonInterface
     /**
      * Find all unused files
      *
+     * @param Folder      $folder
+     * @param bool        $recursive
+     * @param string|null $fileDenyPattern
+     * @param string|null $pathDenyPattern
+     *
      * @return FileFacade[]
      * @throws ResourceDoesNotExistException
      */
@@ -72,6 +78,7 @@ class FileRepository implements SingletonInterface
 
         $return = [];
         $files = $folder->getFiles(0, 0, Folder::FILTER_MODE_USE_OWN_AND_STORAGE_FILTERS, $recursive);
+
         if ($fileDenyPattern === null) {
             $fileDenyPattern = $this->fileNameDenyPattern;
         }
@@ -115,7 +122,7 @@ class FileRepository implements SingletonInterface
      *
      * @param Folder $folder
      * @param bool $recursive
-     * @param string $fileDenyPattern
+     * @param string|null $fileDenyPattern
      *
      * @return File[]
      */
@@ -180,7 +187,7 @@ class FileRepository implements SingletonInterface
                     $queryBuilder1->createNamedParameter('sys_file_metadata', Connection::PARAM_STR)
                 )
             )
-            ->execute();
+            ->executeQuery();
         $refIndexCount = (int)$res1->fetchOne();
 
         // sys_file_reference
@@ -194,7 +201,7 @@ class FileRepository implements SingletonInterface
                     $queryBuilder2->createNamedParameter($file->getUid(), Connection::PARAM_INT)
                 ),
             )
-            ->execute();
+            ->executeQuery();
         $fileReferenceCount = (int)$res2->fetchOne();
 
         return max($refIndexCount, $fileReferenceCount);
@@ -209,8 +216,8 @@ class FileRepository implements SingletonInterface
             ->where(
                 $queryBuilder->expr()->eq('uid', (int)$file->getUid())
             )
-            ->execute();
-        $row = $res->fetch();
+            ->executeQuery();
+        $row = $res->fetchAssociative();
 
         return $row ? $row['last_move'] : 0;
     }
