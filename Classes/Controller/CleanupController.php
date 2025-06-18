@@ -3,12 +3,16 @@
 namespace WebVision\WvFileCleanup\Controller;
 
 use Psr\Http\Message\ResponseInterface;
-use TYPO3\CMS\Backend\Routing\UriBuilder;
+use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Backend\Module\ModuleData;
+use TYPO3\CMS\Backend\Routing\UriBuilder as BackendUriBuilder;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
+use TYPO3\CMS\Backend\Template\Components\Buttons\LinkButton;
 use TYPO3\CMS\Backend\Template\ModuleTemplate;
 use TYPO3\CMS\Backend\Template\ModuleTemplateFactory;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Information\Typo3Version;
@@ -23,9 +27,16 @@ use TYPO3\CMS\Core\Resource\Exception\ResourceDoesNotExistException;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
+use TYPO3\CMS\Core\Resource\StorageRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\MathUtility;
+use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
-use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
+use TYPO3\CMS\Extbase\Mvc\ExtbaseRequestParameters;
+use TYPO3\CMS\Extbase\Mvc\Request;
+use TYPO3\CMS\Extbase\Mvc\RequestInterface;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
+use \TYPO3Fluid\Fluid\View\ViewInterface;
 use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
 
 /**
@@ -45,41 +56,65 @@ class CleanupController extends ActionController
 
     protected FileRepository $fileRepository;
 
+    protected BackendUriBuilder $backendUriBuilder;
+
+    /**
+     * @var StorageRepository
+     */
+    protected $storageRepository;
+
     protected IconFactory $iconFactory;
+
+    protected ?ModuleData $moduleData = null;
+
+    protected string $moduleIdentifier = '';
 
     public function __construct(
         FileRepository $fileRepository,
         PageRenderer $pageRenderer,
         ModuleTemplateFactory $moduleTemplateFactory,
-        IconFactory $iconFactory
+        IconFactory $iconFactory,
+        StorageRepository $storageRepository,
+        BackendUriBuilder $backendUriBuilder
     ) {
         $this->fileRepository = $fileRepository;
         $this->pageRenderer = $pageRenderer;
         $this->moduleTemplateFactory = $moduleTemplateFactory;
         $this->iconFactory = $iconFactory;
+        $this->storageRepository = $storageRepository;
+        $this->backendUriBuilder = $backendUriBuilder;
     }
 
     public function initializeAction(): void
     {
         $this->moduleTemplate = $this->moduleTemplateFactory->create($this->request);
+        $this->moduleData = $this->request->getAttribute('moduleData');
+        $this->moduleIdentifier = $this->moduleData->getModuleIdentifier();
     }
 
     public function initializeView(ViewInterface $view): void
     {
-        $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/Backend/ContextMenu');
-        $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/WvFileCleanup/Cleanup');
-        $this->pageRenderer->addJsInlineCode(
-            'FileCleanup',
-            'function jumpToUrl(URL) {
-                        window.location.href = URL;
-                        return false;
-                    }'
-        );
+
+//        $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/Backend/ContextMenu');
+//        $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/WvFileCleanup/Cleanup');
+        // Load JavaScript via PageRenderer
+        $this->pageRenderer->loadJavaScriptModule('@typo3/backend/context-menu.js');
+        $this->pageRenderer->loadJavaScriptModule('@WebVision/WvFileCleanup/Cleanup.js');
+//        $this->pageRenderer->addJsInlineCode(
+//            'FileCleanup',
+//            'function jumpToUrl(URL) {
+//                        window.location.href = URL;
+//                        return false;
+//                    }'
+//        );
         $this->registerDocHeaderButtons();
 
         $pageRecord = [
             'combined_identifier' => $this->folder->getCombinedIdentifier(),
         ];
+
+//        $arguments = $this->request->getArguments();
+
         $this->moduleTemplate->getDocHeaderComponent()->setMetaInformation($pageRecord);
     }
 
@@ -96,13 +131,22 @@ class CleanupController extends ActionController
         $this->getLanguageService()->includeLLFile('EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf');
 
         // GPvars
-        $combinedIdentifier = GeneralUtility::_GP('id');
+        //$combinedIdentifier = GeneralUtility::_GP('id');
+        $this->request = $this->getExtbaseRequest();
+        $combinedIdentifier = ($this->request->getParsedBody()['id'] ?? $this->request->getQueryParams()['id'] ?? null);
 
         try {
             if ($combinedIdentifier) {
                 /** @var $resourceFactory ResourceFactory **/
                 $resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
-                $storage = $resourceFactory->getStorageObjectFromCombinedIdentifier($combinedIdentifier);
+                //$storage = $resourceFactory->getStorageObjectFromCombinedIdentifier($combinedIdentifier);
+                [$storageId, $objectIdentifier] = array_pad(GeneralUtility::trimExplode(':', $combinedIdentifier), 2, null);
+                if (!MathUtility::canBeInterpretedAsInteger($storageId) && $objectIdentifier === null) {
+                    $storage =  $this->storageRepository->getDefaultStorage();
+                } else {
+                    $storage = $this->storageRepository->findByUid((int)$storageId);
+                }
+
                 $identifier = substr($combinedIdentifier, strpos($combinedIdentifier, ':') + 1);
                 if (!$storage->hasFolder($identifier)) {
                     $identifier = $storage->getFolderIdentifierFromFileIdentifier($identifier);
@@ -140,11 +184,11 @@ class CleanupController extends ActionController
             $this->folder = null;
             $this->addFlashMessage(
                 sprintf(
-                    $this->getLanguageService()->getLL('missingFolderPermissionsMessage'),
+                    $this->getLanguageService()->sL('missingFolderPermissionsMessage'),
                     htmlspecialchars($combinedIdentifier)
                 ),
-                $this->getLanguageService()->getLL('missingFolderPermissionsTitle'),
-                FlashMessage::NOTICE
+                $this->getLanguageService()->sL('missingFolderPermissionsTitle'),
+                \TYPO3\CMS\Core\Type\ContextualFeedbackSeverity::NOTICE
             );
         } catch (Exception $fileException) {
             // Set folder object to null and throw a message later on
@@ -160,18 +204,18 @@ class CleanupController extends ActionController
             }
             $this->addFlashMessage(
                 sprintf(
-                    $this->getLanguageService()->getLL('folderNotFoundMessage'),
+                    $this->getLanguageService()->sL('folderNotFoundMessage'),
                     htmlspecialchars($combinedIdentifier)
                 ),
-                $this->getLanguageService()->getLL('folderNotFoundTitle'),
-                FlashMessage::NOTICE
+                $this->getLanguageService()->sL('folderNotFoundTitle'),
+                \TYPO3\CMS\Core\Type\ContextualFeedbackSeverity::NOTICE
             );
         } catch (\RuntimeException $e) {
             $this->folder = null;
             $this->addFlashMessage(
                 $e->getMessage() . ' (' . $e->getCode() . ')',
-                $this->getLanguageService()->getLL('folderNotFoundTitle'),
-                FlashMessage::NOTICE
+                $this->getLanguageService()->sL('folderNotFoundTitle'),
+                \TYPO3\CMS\Core\Type\ContextualFeedbackSeverity::NOTICE
             );
         }
 
@@ -190,14 +234,17 @@ class CleanupController extends ActionController
      */
     protected function optionsConfig(): void
     {
+
         $this->moduleSettings = BackendUtility::getModuleData(
             [
                 'displayThumbs' => '',
                 'recursive' => '',
             ],
-            GeneralUtility::_GP('SET'),
+            //GeneralUtility::_GP('SET'),
+            $this->request->getQueryParams()['SET'] ?? null,
             'file_WvFileCleanupCleanup'
         );
+
     }
 
     /**
@@ -226,17 +273,24 @@ class CleanupController extends ActionController
     protected function registerDocHeaderButtons(): void
     {
         $buttonBar = $this->moduleTemplate->getDocHeaderComponent()->getButtonBar();
-
         // Refresh page
-        $refreshLink = GeneralUtility::linkThisScript(
+//        $refreshLink = GeneralUtility::linkThisScript(
+//            [
+//                'target' => rawurlencode($this->folder->getCombinedIdentifier()),
+//            ]
+//        );
+
+        $refreshLink = $this->backendUriBuilder->buildUriFromRoute(
+            $this->moduleIdentifier,
             [
                 'target' => rawurlencode($this->folder->getCombinedIdentifier()),
             ]
         );
+
         $buttonFactory = GeneralUtility::makeInstance(
-            \TYPO3\CMS\Backend\Template\Components\Buttons\LinkButton::class
+            LinkButton::class
         );
-        $buttonTitle = $this->getLanguageService()->getLL('labels.reload');
+        $buttonTitle = $this->getLanguageService()->sL('labels.reload');
         $refreshButton = $buttonBar->makeLinkButton($buttonFactory)
             ->setHref($refreshLink)
             ->setTitle($buttonTitle)
@@ -252,15 +306,14 @@ class CleanupController extends ActionController
                 $parentFolder->getIdentifier() !== $this->folder->getIdentifier()
                 && $currentStorage->isWithinFileMountBoundaries($parentFolder)
             ) {
-                $levelUpTitle = $this->getLanguageService()->getLL('labels.upOneLevel');
+                $levelUpTitle = $this->getLanguageService()->sL('labels.upOneLevel');
                 if (!$levelUpTitle) {
                     $levelUpTitle = 'Up one level';
                 }
-                $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
                 $levelUpButton = $buttonBar->makeLinkButton($buttonFactory)
                     ->setHref(
-                        (string)$uriBuilder->buildUriFromRoute(
-                            'file_WvFileCleanupCleanup',
+                        (string)$this->backendUriBuilder->buildUriFromRoute(
+                            $this->moduleIdentifier,
                             ['id' => $parentFolder->getCombinedIdentifier()]
                         )
                     )
@@ -282,7 +335,7 @@ class CleanupController extends ActionController
         // Shortcut
         if ($this->getBackendUser()->mayMakeShortcut()) {
             $shortCutButton = $buttonBar->makeShortcutButton()
-                ->setRouteIdentifier('file_WvFileCleanupCleanup')
+                ->setRouteIdentifier($this->moduleIdentifier)
                 ->setDisplayName('File cleanup');
             $buttonBar->addButton($shortCutButton, ButtonBar::BUTTON_POSITION_RIGHT);
         }
@@ -293,47 +346,71 @@ class CleanupController extends ActionController
      */
     public function indexAction(): ResponseInterface
     {
-        $this->view->assign('files', $this->fileRepository->findUnusedFile($this->folder, $this->moduleSettings['recursive'] ?? false));
-        $this->view->assign('folder', $this->folder);
+        $this->moduleTemplate->assign('files', $this->fileRepository->findUnusedFile($this->folder, $this->moduleSettings['recursive'] ?? false));
+        $this->moduleTemplate->assign('folder', $this->folder);
         $backendUserTsconfig = $this->getBackendUserTsconfig();
-        $this->view->assign('checkboxes', [
+
+        $attributesDisplayThumbs = GeneralUtility::implodeAttributes([
+            'type' => 'checkbox',
+            'class' => 'checkbox',
+            'name' => 'SET[displayThumbs]',
+            'value' => '1',
+            'data-global-event' => 'change',
+            'data-action-navigate' => '$data=~s/$value/',
+            'data-navigate-value' => sprintf(
+                '%s&%s=${value}',
+                (string)$this->backendUriBuilder->buildUriFromRoute(
+                    $this->moduleIdentifier,
+                    ['id' =>$this->folder ? $this->folder->getCombinedIdentifier() : '']
+                ),
+                'SET[displayThumbs]'
+            ),
+            'data-empty-value' => '0',
+        ], true);
+        $attributesRecursive = GeneralUtility::implodeAttributes([
+            'type' => 'checkbox',
+            'class' => 'checkbox',
+            'name' => 'SET[recursive]',
+            'value' => '1',
+            'data-global-event' => 'change',
+            'data-action-navigate' => '$data=~s/$value/',
+            'data-navigate-value' => sprintf(
+                '%s&%s=${value}',
+                (string)$this->backendUriBuilder->buildUriFromRoute(
+                    $this->moduleIdentifier,
+                    ['id' =>$this->folder ? $this->folder->getCombinedIdentifier() : '']
+                ),
+                'SET[recursive]'
+            ),
+            'data-empty-value' => '0',
+        ], true);
+
+        $this->moduleTemplate->assign('checkboxes', [
             'displayThumbs' => [
                 'enabled' => $GLOBALS['TYPO3_CONF_VARS']['GFX']['thumbnails']
                     && $backendUserTsconfig['options.']['file_list.']['enableDisplayThumbnails'] === 'selectable',
-                'label' => $this->getLanguageService()->getLL('displayThumbs'),
-                'html' => BackendUtility::getFuncCheck(
-                    $this->folder ? $this->folder->getCombinedIdentifier() : '',
-                    'SET[displayThumbs]',
-                    $this->moduleSettings['displayThumbs'],
-                    '',
-                    '',
-                    'id="checkDisplayThumbs"'
-                ),
+                'label' => $this->getLanguageService()->sL('LLL:EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf:displayThumbs'),
+                'html' => '<input ' . $attributesDisplayThumbs . (isset($this->moduleSettings['displayThumbs']) ? ' checked="checked"' : '') . 'id="checkDisplayThumbs" />',
                 'checked' => $this->moduleSettings['displayThumbs'],
             ],
             'recursive' => [
                 'enabled' => true,
-                'label' => $this->getLanguageService()->getLL('search_folders_recursive'),
-                'html' => BackendUtility::getFuncCheck(
-                    $this->folder ? $this->folder->getCombinedIdentifier() : '',
-                    'SET[recursive]',
-                    $this->moduleSettings['recursive'] ?? false,
-                    '',
-                    '',
-                    'id="checkRecursive"'
-                ),
+                'label' => $this->getLanguageService()->sL('LLL:EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf:search_folders_recursive'),
+                'html' => '<input ' . $attributesRecursive . (isset($this->moduleSettings['recursive']) ? ' checked="checked"' : '') . 'id="checkRecursive" />',
                 'checked' => $this->moduleSettings['recursive'] ?? false,
             ],
         ]);
 
-        $this->moduleTemplate->setContent($this->view->render());
-        return $this->htmlResponse($this->moduleTemplate->renderContent());
+
+        return $this->moduleTemplate->renderResponse('Cleanup/Index');
     }
 
     /**
      * Cleanup files
      *
      * @param array $files
+     *
+     * @return ResponseInterface
      * @throws ExistingTargetFolderException
      * @throws InsufficientFolderAccessPermissionsException
      * @throws \TYPO3\CMS\Core\Exception
@@ -359,7 +436,7 @@ class CleanupController extends ActionController
                     $this->addFlashMessage(
                         'You are not allowed to create a _recycler_ folder in ' . $folder->getReadablePath(),
                         '',
-                        FlashMessage::ERROR,
+                        \TYPO3\CMS\Core\Type\ContextualFeedbackSeverity::ERROR,
                         true
                     );
                 }
@@ -376,7 +453,7 @@ class CleanupController extends ActionController
             $this->addFlashMessage(
                 'No files moved',
                 '',
-                FlashMessage::WARNING,
+                \TYPO3\CMS\Core\Type\ContextualFeedbackSeverity::WARNING,
                 true
             );
         }
@@ -398,7 +475,7 @@ class CleanupController extends ActionController
     public function addFlashMessage(
         $messageBody,
         $messageTitle = '',
-        $severity = \TYPO3\CMS\Core\Messaging\AbstractMessage::OK,
+        $severity = \TYPO3\CMS\Core\Type\ContextualFeedbackSeverity::OK,
         $storeInSession = true
     ): void {
         if (!is_string($messageBody)) {
@@ -434,5 +511,16 @@ class CleanupController extends ActionController
     protected function getBackendUserTsconfig(): array
     {
         return $this->getBackendUser()->getTSConfig();
+    }
+
+    private function getExtbaseRequest(): RequestInterface
+    {
+        /** @var ServerRequestInterface $request */
+        $request = $GLOBALS['TYPO3_REQUEST'];
+
+        // We have to provide an Extbase request object
+        return new Request(
+            $request->withAttribute('extbase', new ExtbaseRequestParameters()),
+        );
     }
 }

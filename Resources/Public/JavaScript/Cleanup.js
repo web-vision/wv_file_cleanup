@@ -12,17 +12,22 @@
  */
 
 /**
- * Module: WebVision/WvFileCleanup/Cleanup
- * @exports WebVision/WvFileCleanup/Cleanup
+ * Module: @WebVision/WvFileCleanup/Cleanup.js
  */
-define(['jquery'], function($) {
 
-    $('.js-cleanup-all').on('click', function(){
+import $ from 'jquery';
+
+
+function selectAll() {
+    $('.js-cleanup-all').on('click', function () {
         if ($(this).is(':checked')) {
-            $('.js-cleanup-checkbox').attr('checked', true);
+            $('.js-cleanup-checkbox').prop('checked', true);
         } else {
-            $('.js-cleanup-checkbox').attr('checked', false);
+            $('.js-cleanup-checkbox').prop('checked', false);
         }
     });
+}
 
+$(document).ready(function () {
+    selectAll();
 });

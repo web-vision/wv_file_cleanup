@@ -16,8 +16,12 @@ namespace WebVision\WvFileCleanup;
  */
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
+use TYPO3\CMS\Core\Localization\LanguageService;
+use TYPO3\CMS\Core\Resource\FileInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -38,12 +42,12 @@ class FileFacade
     protected static $lastReferenceTimestamps = [];
 
     /**
-     * @var \TYPO3\CMS\Core\Resource\FileInterface
+     * @var FileInterface
      */
     protected $resource;
 
     /**
-     * @var \TYPO3\CMS\Core\Database\ConnectionPool
+     * @var ConnectionPool
      */
     protected $queryBuilder;
 
@@ -54,9 +58,9 @@ class FileFacade
     protected $databaseConnection;
 
     /**
-     * @param \TYPO3\CMS\Core\Resource\FileInterface $resource
+     * @param FileInterface $resource
      */
-    public function __construct(\TYPO3\CMS\Core\Resource\FileInterface $resource)
+    public function __construct(FileInterface $resource)
     {
         $this->resource = $resource;
         $this->iconFactory = GeneralUtility::makeInstance(IconFactory::class);
@@ -68,11 +72,11 @@ class FileFacade
     public function getIcon()
     {
         $title = htmlspecialchars($this->resource->getName() . ' [' . (int)$this->resource->getProperty('uid') . ']');
-        return '<span title="' . $title . '">' . $this->iconFactory->getIconForResource($this->resource, Icon::SIZE_SMALL) . '</span>';
+        return '<span title="' . $title . '">' . $this->iconFactory->getIconForResource($this->resource, \TYPO3\CMS\Core\Imaging\Icon::SIZE_SMALL) . '</span>';
     }
 
     /**
-     * @return \TYPO3\CMS\Core\Resource\FileInterface
+     * @return FileInterface
      */
     public function getResource()
     {
@@ -164,7 +168,7 @@ class FileFacade
      */
     public function getSize()
     {
-        return GeneralUtility::formatSize($this->resource->getSize(), $this->getLanguageService()->getLL('byteSizeUnits'));
+        return GeneralUtility::formatSize($this->resource->getSize(), $this->getLanguageService()->sL('LLL:EXT:core/Resources/Private/Language/locallang_common.xlf:byteSizeUnits'));
     }
 
     /**
@@ -267,7 +271,7 @@ class FileFacade
                         $queryBuilder->expr()->eq('deleted', 1)
                     )
                     ->orderBy('tstamp DESC')
-                    ->execute();
+                    ->executeQuery();
                 $row = $result->fetchAllAssociative();
             }
 
@@ -296,11 +300,11 @@ class FileFacade
 
     protected function initDatabaseConnection()
     {
-        $this->queryBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);
+        $this->queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class);
     }
 
     /**
-     * @return \TYPO3\CMS\Core\Authentication\BackendUserAuthentication
+     * @return BackendUserAuthentication
      */
     protected function getBackendUser()
     {
@@ -308,7 +312,7 @@ class FileFacade
     }
 
     /**
-     * @return \TYPO3\CMS\Core\Localization\LanguageService
+     * @return LanguageService
      */
     protected function getLanguageService()
     {

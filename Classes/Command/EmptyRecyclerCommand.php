@@ -21,20 +21,20 @@ class EmptyRecyclerCommand extends Command
     /**
      * @var FileRepository
      */
-    protected $fileRepository;
+    protected FileRepository $fileRepository;
 
     /**
      * @var ResourceFactory
      */
-    protected $resourceFactory;
+    protected ResourceFactory $resourceFactory;
 
-    public function injectFileRepository(FileRepository $fileRepository): void
+    public function __construct(
+        FileRepository $fileRepository,
+        ResourceFactory $resourceFactory
+    )
     {
+        parent::__construct();
         $this->fileRepository = $fileRepository;
-    }
-
-    public function injectResourceFactory(ResourceFactory $resourceFactory): void
-    {
         $this->resourceFactory = $resourceFactory;
     }
 
@@ -78,6 +78,10 @@ class EmptyRecyclerCommand extends Command
     }
 
     /**
+     * @param InputInterface  $input
+     * @param OutputInterface $output
+     *
+     * @return int
      * @throws InsufficientFolderAccessPermissionsException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int

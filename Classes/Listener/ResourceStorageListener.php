@@ -21,7 +21,7 @@ class ResourceStorageListener implements SingletonInterface
                     $queryBuilder->expr()->eq('uid', (int)$file->getUid())
                 )
                 ->set('last_move', time())
-                ->execute();
+                ->executeStatement();
         }
     }
 }

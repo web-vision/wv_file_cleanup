@@ -19,6 +19,9 @@
 			<trans-unit id="button.cleanup_files">
 				<source>Cleanup selected files</source>
 			</trans-unit>
+			<trans-unit id="displayThumbs">
+				<source>Display thumbnails</source>
+			</trans-unit>
 			<trans-unit id="no_files_found">
 				<source>No files found</source>
 			</trans-unit>
@@ -31,7 +34,18 @@
 					excluded from cleanup.
 				</source>
 			</trans-unit>
-
+			<trans-unit id="filepath">
+				<source>Path</source>
+			</trans-unit>
+			<trans-unit id="tstamp">
+				<source>Date</source>
+			</trans-unit>
+			<trans-unit id="settings">
+				<source>Settings</source>
+			</trans-unit>
+			<trans-unit id="folder">
+				<source>Folder</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
