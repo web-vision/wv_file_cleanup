@@ -1,4 +1,3 @@
-version: '2.3'
 services:
   # This is the service name used when running ddev commands accepting the
   # --service flag.
@@ -325,7 +324,7 @@ services:
         fi
         mkdir -p .Build/.cache
         php -v | grep '^PHP';
-        php -dxdebug.mode=off .Build/bin/phpstan analyze -c Build/phpstan/phpstan.neon --no-progress
+        php -dxdebug.mode=off .Build/bin/phpstan analyze -c Build/phpstan/core${TYPO3_VERSION}/phpstan.neon --no-progress
       "
 
   phpstan_generate_baseline:
@@ -341,7 +340,7 @@ services:
         fi
         mkdir -p .Build/.cache
         php -v | grep '^PHP';
-        php -dxdebug.mode=off .Build/bin/phpstan analyze -c Build/phpstan/phpstan.neon --generate-baseline=Build/phpstan/phpstan-baseline.neon
+        php -dxdebug.mode=off .Build/bin/phpstan analyze -c Build/phpstan/core${TYPO3_VERSION}/phpstan.neon --generate-baseline=Build/phpstan/core${TYPO3_VERSION}/phpstan-baseline.neon
       "
 
   unit:
