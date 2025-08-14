@@ -13,6 +13,7 @@
 /composer.lock
 /.php-cs-fixer.cache
 /rector.php
+.phpunit.cache
 *.diff
 
 /tailor-version-artefact/
