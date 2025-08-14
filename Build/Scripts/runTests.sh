@@ -82,7 +82,7 @@ Options:
             - clean: clean up build and testing related files
             - composerUpdate: "composer update", handy if host has no PHP
             - functional: functional tests
-            - lint: PHP linting
+            - lintPhp: PHP linting
             - phpstan: phpstan analyze
             - phpstanGenerateBaseline: regenerate phpstan baseline, handy after phpstan updates
             - unit: PHP unit tests
@@ -310,9 +310,9 @@ functional)
     esac
     docker compose down
     ;;
-lint)
+lintPhp)
     setUpDockerComposeDotEnv
-    docker compose run lint
+    docker compose run lint_php
     SUITE_EXIT_CODE=$?
     docker compose down
     ;;
