@@ -1,2 +1,216 @@
 parameters:
 	ignoreErrors:
+		-
+			message: "#^Parameter \\#1 \\$uid of method TYPO3\\\\CMS\\\\Core\\\\Resource\\\\ResourceFactory\\:\\:getStorageObject\\(\\) expects int\\|null, int\\|string given\\.$#"
+			count: 1
+			path: ../../../Classes/Command/CleanupCommand.php
+
+		-
+			message: "#^Parameter \\#2 \\$parentFolder of method TYPO3\\\\CMS\\\\Core\\\\Resource\\\\ResourceStorage\\:\\:createFolder\\(\\) expects TYPO3\\\\CMS\\\\Core\\\\Resource\\\\Folder\\|null, TYPO3\\\\CMS\\\\Core\\\\Resource\\\\FolderInterface given\\.$#"
+			count: 1
+			path: ../../../Classes/Command/CleanupCommand.php
+
+		-
+			message: "#^Call to an undefined method TYPO3\\\\CMS\\\\Core\\\\Resource\\\\FolderInterface\\:\\:getReadablePath\\(\\)\\.$#"
+			count: 1
+			path: ../../../Classes/Command/EmptyRecyclerCommand.php
+
+		-
+			message: "#^Parameter \\#1 \\$uid of method TYPO3\\\\CMS\\\\Core\\\\Resource\\\\ResourceFactory\\:\\:getStorageObject\\(\\) expects int\\|null, int\\|string given\\.$#"
+			count: 1
+			path: ../../../Classes/Command/EmptyRecyclerCommand.php
+
+		-
+			message: "#^Call to an undefined method TYPO3\\\\CMS\\\\Backend\\\\Template\\\\Components\\\\Buttons\\\\LinkButton\\:\\:setOnClick\\(\\)\\.$#"
+			count: 1
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
+			message: "#^Call to an undefined method TYPO3\\\\CMS\\\\Core\\\\Resource\\\\FolderInterface\\:\\:getCombinedIdentifier\\(\\)\\.$#"
+			count: 2
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
+			message: "#^Call to an undefined method TYPO3\\\\CMS\\\\Core\\\\Resource\\\\FolderInterface\\:\\:getReadablePath\\(\\)\\.$#"
+			count: 1
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
+			message: "#^Cannot call method getCombinedIdentifier\\(\\) on TYPO3\\\\CMS\\\\Core\\\\Resource\\\\Folder\\|null\\.$#"
+			count: 2
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
+			message: "#^Cannot call method getIdentifier\\(\\) on TYPO3\\\\CMS\\\\Core\\\\Resource\\\\Folder\\|null\\.$#"
+			count: 1
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
+			message: "#^Cannot call method getParentFolder\\(\\) on TYPO3\\\\CMS\\\\Core\\\\Resource\\\\Folder\\|null\\.$#"
+			count: 1
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
+			message: "#^Cannot call method getStorage\\(\\) on TYPO3\\\\CMS\\\\Core\\\\Resource\\\\Folder\\|null\\.$#"
+			count: 1
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
+			message: "#^Method TYPO3\\\\CMS\\\\Backend\\\\Template\\\\Components\\\\ButtonBar\\:\\:makeLinkButton\\(\\) invoked with 1 parameter, 0 required\\.$#"
+			count: 2
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
+			message: "#^Method WebVision\\\\WvFileCleanup\\\\Controller\\\\CleanupController\\:\\:cleanupAction\\(\\) has parameter \\$files with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
+			message: "#^PHPDoc tag @var has invalid value \\(\\$resourceFactory ResourceFactory \\*\\)\\: Unexpected token \"\\$resourceFactory\", expected type at offset 9$#"
+			count: 2
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
+			message: "#^Parameter \\#1 \\$folder of method WebVision\\\\WvFileCleanup\\\\Domain\\\\Repository\\\\FileRepository\\:\\:findUnusedFile\\(\\) expects TYPO3\\\\CMS\\\\Core\\\\Resource\\\\Folder, TYPO3\\\\CMS\\\\Core\\\\Resource\\\\Folder\\|null given\\.$#"
+			count: 1
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
+			message: "#^Parameter \\#2 \\$parentFolder of method TYPO3\\\\CMS\\\\Core\\\\Resource\\\\ResourceStorage\\:\\:createFolder\\(\\) expects TYPO3\\\\CMS\\\\Core\\\\Resource\\\\Folder\\|null, TYPO3\\\\CMS\\\\Core\\\\Resource\\\\FolderInterface given\\.$#"
+			count: 1
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
+			message: "#^Parameter \\#2 \\$replace of function str_replace expects array\\|string, int\\<1, max\\> given\\.$#"
+			count: 1
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
+			message: "#^Parameter \\$view of method WebVision\\\\WvFileCleanup\\\\Controller\\\\CleanupController\\:\\:initializeView\\(\\) has invalid type TYPO3\\\\CMS\\\\Extbase\\\\Mvc\\\\View\\\\ViewInterface\\.$#"
+			count: 1
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
+			message: "#^Property WebVision\\\\WvFileCleanup\\\\Controller\\\\CleanupController\\:\\:\\$moduleSettings type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
+			message: "#^Cannot call method fetch\\(\\) on Doctrine\\\\DBAL\\\\Result\\|int\\.$#"
+			count: 1
+			path: ../../../Classes/Domain/Repository/FileRepository.php
+
+		-
+			message: "#^Cannot call method fetchOne\\(\\) on Doctrine\\\\DBAL\\\\Result\\|int\\.$#"
+			count: 2
+			path: ../../../Classes/Domain/Repository/FileRepository.php
+
+		-
+			message: "#^Instanceof between TYPO3\\\\CMS\\\\Core\\\\Resource\\\\File and TYPO3\\\\CMS\\\\Core\\\\Resource\\\\ProcessedFile will always evaluate to false\\.$#"
+			count: 1
+			path: ../../../Classes/Domain/Repository/FileRepository.php
+
+		-
+			message: "#^Parameter \\#2 \\$subject of function preg_match expects string, string\\|null given\\.$#"
+			count: 1
+			path: ../../../Classes/Domain/Repository/FileRepository.php
+
+		-
+			message: "#^Access to an undefined property WebVision\\\\WvFileCleanup\\\\FileFacade\\:\\:\\$iconFactory\\.$#"
+			count: 2
+			path: ../../../Classes/FileFacade.php
+
+		-
+			message: "#^Cannot call method fetchAllAssociative\\(\\) on Doctrine\\\\DBAL\\\\Result\\|int\\.$#"
+			count: 1
+			path: ../../../Classes/FileFacade.php
+
+		-
+			message: "#^If condition is always true\\.$#"
+			count: 1
+			path: ../../../Classes/FileFacade.php
+
+		-
+			message: "#^Method TYPO3\\\\CMS\\\\Core\\\\Resource\\\\FileInterface\\:\\:getPublicUrl\\(\\) invoked with 1 parameter, 0 required\\.$#"
+			count: 1
+			path: ../../../Classes/FileFacade.php
+
+		-
+			message: "#^Method WebVision\\\\WvFileCleanup\\\\FileFacade\\:\\:__call\\(\\) has parameter \\$arguments with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../../../Classes/FileFacade.php
+
+		-
+			message: "#^Method WebVision\\\\WvFileCleanup\\\\FileFacade\\:\\:getPublicUrl\\(\\) should return string but returns string\\|null\\.$#"
+			count: 1
+			path: ../../../Classes/FileFacade.php
+
+		-
+			message: "#^Method WebVision\\\\WvFileCleanup\\\\FileFacade\\:\\:initDatabaseConnection\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: ../../../Classes/FileFacade.php
+
+		-
+			message: "#^Offset 'tstamp' does not exist on array\\<int, array\\<string, mixed\\>\\>\\.$#"
+			count: 1
+			path: ../../../Classes/FileFacade.php
+
+		-
+			message: "#^PHPDoc tag @var has invalid value \\(\\)\\: Unexpected token \"\\\\n     \", expected type at offset 34$#"
+			count: 1
+			path: ../../../Classes/FileFacade.php
+
+		-
+			message: "#^Parameter \\#1 \\$callback of function call_user_func_array expects callable\\(\\)\\: mixed, array\\{TYPO3\\\\CMS\\\\Core\\\\Resource\\\\FileInterface, string\\} given\\.$#"
+			count: 1
+			path: ../../../Classes/FileFacade.php
+
+		-
+			message: "#^Property WebVision\\\\WvFileCleanup\\\\FileFacade\\:\\:\\$databaseConnection has no type specified\\.$#"
+			count: 1
+			path: ../../../Classes/FileFacade.php
+
+		-
+			message: "#^Property WebVision\\\\WvFileCleanup\\\\FileFacade\\:\\:\\$lastReferenceTimestamps type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../../../Classes/FileFacade.php
+
+		-
+			message: "#^Cannot call method fetchAll\\(\\) on Doctrine\\\\DBAL\\\\Result\\|int\\.$#"
+			count: 3
+			path: ../../../Classes/Service/FileCollectionService.php
+
+		-
+			message: "#^Cannot call method getItems\\(\\) on TYPO3\\\\CMS\\\\Core\\\\Resource\\\\Collection\\\\AbstractFileCollection\\|null\\.$#"
+			count: 1
+			path: ../../../Classes/Service/FileCollectionService.php
+
+		-
+			message: "#^Cannot call method loadContents\\(\\) on TYPO3\\\\CMS\\\\Core\\\\Resource\\\\Collection\\\\AbstractFileCollection\\|null\\.$#"
+			count: 1
+			path: ../../../Classes/Service/FileCollectionService.php
+
+		-
+			message: "#^Method WebVision\\\\WvFileCleanup\\\\Service\\\\FileCollectionService\\:\\:getFilesLTS11\\(\\) has parameter \\$folder with no type specified\\.$#"
+			count: 1
+			path: ../../../Classes/Service/FileCollectionService.php
+
+		-
+			message: "#^Method WebVision\\\\WvFileCleanup\\\\Service\\\\FileCollectionService\\:\\:getFilesLTS11\\(\\) has parameter \\$storage with no type specified\\.$#"
+			count: 1
+			path: ../../../Classes/Service/FileCollectionService.php
+
+		-
+			message: "#^Method WebVision\\\\WvFileCleanup\\\\Service\\\\FileCollectionService\\:\\:getFilesLTS12\\(\\) has parameter \\$folder with no type specified\\.$#"
+			count: 1
+			path: ../../../Classes/Service/FileCollectionService.php
+
+		-
+			message: "#^Method WebVision\\\\WvFileCleanup\\\\Service\\\\FileCollectionService\\:\\:getFilesLTS12\\(\\) has parameter \\$storage with no type specified\\.$#"
+			count: 1
+			path: ../../../Classes/Service/FileCollectionService.php
+
+		-
+			message: "#^Property WebVision\\\\WvFileCleanup\\\\Service\\\\FileCollectionService\\:\\:\\$fileUids type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../../../Classes/Service/FileCollectionService.php
