@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
 
 #
-# TYPO3 core test runner based on docker and docker-compose.
+# TYPO3 core test runner based on docker and docker compose.
 #
 
 # Function to write a .env file in Build/testing-docker/local
-# This is read by docker-compose and vars defined here are
-# used in Build/testing-docker/local/docker-compose.yml
+# This is read by docker compose and vars defined here are
+# used in Build/testing-docker/local/docker compose.yml
 setUpDockerComposeDotEnv() {
     # Delete possibly existing local .env file if exists
     [ -e .env ] && rm .env
-    # Set up a new .env file for docker-compose
+    # Set up a new .env file for docker compose
     echo "COMPOSE_PROJECT_NAME=local" >>.env
     # Delete possibly existing local .env file if exists
     [ -e .env ] && rm .env
-    # Set up a new .env file for docker-compose
+    # Set up a new .env file for docker compose
     {
         echo "COMPOSE_PROJECT_NAME=local"
         # To prevent access rights of files created by the testing, the docker image later
-        # runs with the same user that is currently executing the script. docker-compose can't
+        # runs with the same user that is currently executing the script. docker compose can't
         # use $UID directly itself since it is a shell variable and not an env variable, so
         # we have to set it explicitly here.
         echo "HOST_UID=$(id -u)"
@@ -105,12 +105,15 @@ Options:
                 - mysqli (default)
                 - pdo_mysql
 
-    -p <7.4|8.0|8.1|8.2>
+    -p <7.4|8.0|8.1|8.2|8.3|8.4|8.5>
         Specifies the PHP minor version to be used
             - 7.4: (default): use PHP 7.4
             - 8.0: use PHP 8.0
-            - 8.0: use PHP 8.1
-            - 8.0: use PHP 8.2
+            - 8.1: use PHP 8.1
+            - 8.2: use PHP 8.2
+            - 8.3: use PHP 8.3
+            - 8.4: use PHP 8.4
+            - 8.5: use PHP 8.5
 
     -t <11|12>
         Only with -s composerUpdate
@@ -149,18 +152,12 @@ Options:
 
 EOF
 
-# Test if docker-compose exists, else exit out with error
-if ! type "docker-compose" >/dev/null; then
-    echo "This script relies on docker and docker-compose. Please install" >&2
-    exit 1
-fi
-
 # Go to the directory this script is located, so everything else is relative
 # to this dir, no matter from where this script is called.
 THIS_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 cd "$THIS_SCRIPT_DIR" || exit 1
 
-# Go to directory that contains the local docker-compose.yml file
+# Go to directory that contains the local docker compose.yml file
 cd ../testing-docker || exit 1
 
 # Option defaults
@@ -195,7 +192,7 @@ while getopts ":s:d:a:p:n:t:e:xy:huv" OPT; do
         ;;
     p)
         PHP_VERSION=${OPTARG}
-        if ! [[ ${PHP_VERSION} =~ ^(7.2|7.3|7.4|8.0|8.1|8.2)$ ]]; then
+        if ! [[ ${PHP_VERSION} =~ ^(7.4|8.0|8.1|8.2|8.3|8.4|8.5)$ ]]; then
             INVALID_OPTIONS+=("p ${OPTARG}")
         fi
         ;;
@@ -271,11 +268,11 @@ composerUpdate)
     if [ -f "../../composer.json.testing" ]; then
         cp ../../composer.json ../../composer.json.orig
     fi
-    docker-compose run composer_update
+    docker compose run composer_update
     cp ../../composer.json ../../composer.json.testing
     mv ../../composer.json.orig ../../composer.json
     SUITE_EXIT_CODE=$?
-    docker-compose down
+    docker compose down
     ;;
 functional)
     handleDbmsAndDriverOptions
@@ -283,16 +280,16 @@ functional)
     case ${DBMS} in
     mariadb)
         echo "Using driver: ${DATABASE_DRIVER}"
-        docker-compose run functional_mariadb10
+        docker compose run functional_mariadb10
         SUITE_EXIT_CODE=$?
         ;;
     mysql)
         echo "Using driver: ${DATABASE_DRIVER}"
-        docker-compose run functional_mysql80
+        docker compose run functional_mysql80
         SUITE_EXIT_CODE=$?
         ;;
     postgres)
-        docker-compose run functional_postgres10
+        docker compose run functional_postgres10
         SUITE_EXIT_CODE=$?
         ;;
     sqlite)
@@ -301,7 +298,7 @@ functional)
         # root if docker creates it. Thank you, docker. We create the path beforehand
         # to avoid permission issues.
         mkdir -p ${ROOT_DIR}/.Build/Web/typo3temp/var/tests/functional-sqlite-dbs/
-        docker-compose run functional_sqlite
+        docker compose run functional_sqlite
         SUITE_EXIT_CODE=$?
         ;;
     *)
@@ -311,19 +308,19 @@ functional)
         exit 1
         ;;
     esac
-    docker-compose down
+    docker compose down
     ;;
 lint)
     setUpDockerComposeDotEnv
-    docker-compose run lint
+    docker compose run lint
     SUITE_EXIT_CODE=$?
-    docker-compose down
+    docker compose down
     ;;
 unit)
     setUpDockerComposeDotEnv
-    docker-compose run unit
+    docker compose run unit
     SUITE_EXIT_CODE=$?
-    docker-compose down
+    docker compose down
     ;;
 update)
     # pull typo3/core-testing-*:latest versions of those ones that exist locally
@@ -333,15 +330,15 @@ update)
     ;;
 phpstan)
     setUpDockerComposeDotEnv
-    docker-compose run phpstan
+    docker compose run phpstan
     SUITE_EXIT_CODE=$?
-    docker-compose down
+    docker compose down
     ;;
 phpstanGenerateBaseline)
     setUpDockerComposeDotEnv
-    docker-compose run phpstan_generate_baseline
+    docker compose run phpstan_generate_baseline
     SUITE_EXIT_CODE=$?
-    docker-compose down
+    docker compose down
     ;;
 cgl)
     # Active dry-run for cgl needs not "-n" but specific options
@@ -349,33 +346,33 @@ cgl)
         CGLCHECK_DRY_RUN="--dry-run --diff"
     fi
     setUpDockerComposeDotEnv
-    docker-compose run cgl_all
+    docker compose run cgl_all
     SUITE_EXIT_CODE=$?
-    docker-compose down
+    docker compose down
     ;;
 checkBom)
     setUpDockerComposeDotEnv
-    docker-compose run check_bom
+    docker compose run check_bom
     SUITE_EXIT_CODE=$?
-    docker-compose down
+    docker compose down
     ;;
 checkExceptionCodes)
     setUpDockerComposeDotEnv
-    docker-compose run check_exception_codes
+    docker compose run check_exception_codes
     SUITE_EXIT_CODE=$?
-    docker-compose down
+    docker compose down
     ;;
 checkTestMethodsPrefix)
     setUpDockerComposeDotEnv
-    docker-compose run check_test_methods_prefix
+    docker compose run check_test_methods_prefix
     SUITE_EXIT_CODE=$?
-    docker-compose down
+    docker compose down
     ;;
 checkRst)
     setUpDockerComposeDotEnv
-    docker-compose run check_rst
+    docker compose run check_rst
     SUITE_EXIT_CODE=$?
-    docker-compose down
+    docker compose down
     ;;
 *)
     echo "Invalid -s option argument ${TEST_SUITE}" >&2
