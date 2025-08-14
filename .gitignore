@@ -1,12 +1,21 @@
 # Do not track OS generated files
 .DS_Store
-composer.lock
-composer.json.orig
-composer.json.testing
 /.config
-/Build/testing-docker/.env
 /.cache/
 /.Build/
-/public/
-/vendor/
 /.php-cs-fixer.cache
+/.idea/
+/var/
+/vendor/
+/.Build/
+/composer.json.orig
+/composer.json.testing
+/composer.lock
+/.php-cs-fixer.cache
+/rector.php
+*.diff
+
+/tailor-version-artefact/
+/tailor-version-upload/
+
+/Build/testing-docker/.env
