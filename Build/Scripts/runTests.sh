@@ -6,7 +6,7 @@
 
 # Function to write a .env file in Build/testing-docker/local
 # This is read by docker compose and vars defined here are
-# used in Build/testing-docker/local/docker compose.yml
+# used in Build/testing-docker/local/docker-compose.yml
 setUpDockerComposeDotEnv() {
     # Delete possibly existing local .env file if exists
     [ -e .env ] && rm .env
@@ -157,7 +157,7 @@ EOF
 THIS_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 cd "$THIS_SCRIPT_DIR" || exit 1
 
-# Go to directory that contains the local docker compose.yml file
+# Go to directory that contains the local docker-compose.yml file
 cd ../testing-docker || exit 1
 
 # Option defaults
