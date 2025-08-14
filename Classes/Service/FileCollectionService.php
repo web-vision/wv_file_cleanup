@@ -67,8 +67,7 @@ class FileCollectionService
         int $storage,
         string $folder
     ): array {
-
-        $typo3Version = (new Typo3Version)->getMajorVersion();
+        $typo3Version = (new Typo3Version())->getMajorVersion();
 
         if ($typo3Version >= 12) {
             $queryResult = $this->getFilesLTS12($storage, $folder);
@@ -140,8 +139,7 @@ class FileCollectionService
             )
             ->execute()
             ->fetchAll();
-            return $queryResult;
-
+        return $queryResult;
     }
     /**
      * @return array<mixed, mixed>
@@ -179,4 +177,3 @@ class FileCollectionService
         return $queryResult;
     }
 }
-
