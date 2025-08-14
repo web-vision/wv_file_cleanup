@@ -126,7 +126,9 @@ services:
           set -x
         fi
         php -v | grep '^PHP';
-        Build/Scripts/composer-for-core-version.sh ${TYPO3_VERSION}
+        rm -rf .Build/vendor composer.lock
+        composer require --dev -W "typo3/minimal":"^${TYPO3_VERSION}"
+        git restore composer.json
       "
 
   functional_mariadb10:
