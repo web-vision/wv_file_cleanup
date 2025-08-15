@@ -65,8 +65,8 @@ class FileRepository implements SingletonInterface
     public function findUnusedFile(
         Folder $folder,
         bool $recursive = true,
-        string $fileDenyPattern = null,
-        string $pathDenyPattern = null
+        ?string $fileDenyPattern = null,
+        ?string $pathDenyPattern = null
     ): array {
         $this->fileCollectionService->initialize($folder->getStorage()->getUid(), $folder->getIdentifier());
 
@@ -122,7 +122,7 @@ class FileRepository implements SingletonInterface
     public function findAllFilesInRecyclerFolder(
         Folder $folder,
         bool $recursive = true,
-        string $fileDenyPattern = null
+        ?string $fileDenyPattern = null
     ): array {
         if ($fileDenyPattern === null) {
             $fileDenyPattern = $this->fileNameDenyPattern;
