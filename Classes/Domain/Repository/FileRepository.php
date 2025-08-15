@@ -7,6 +7,7 @@ use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationPathDoesNotExis
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Resource\Exception\ResourceDoesNotExistException;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileInterface;
@@ -46,7 +47,9 @@ class FileRepository implements SingletonInterface
      * @throws ExtensionConfigurationExtensionNotConfiguredException
      * @throws ExtensionConfigurationPathDoesNotExistException
      */
-    public function __construct()
+    public function __construct(
+        private readonly IconFactory $iconFactory
+    )
     {
         $this->connection = GeneralUtility::makeInstance(ConnectionPool::class);
         $this->fileCollectionService = GeneralUtility::makeInstance(FileCollectionService::class);
@@ -104,7 +107,7 @@ class FileRepository implements SingletonInterface
         });
 
         foreach ($files as $file) {
-            $return[] = new FileFacade($file);
+            $return[] = new FileFacade($file, $this->iconFactory);
         }
 
         return $return;
