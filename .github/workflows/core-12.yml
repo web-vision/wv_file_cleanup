@@ -55,6 +55,29 @@ jobs:
       - name: "Static code analyzer"
         run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s phpstan"
 
+  integration:
+    name: "integration"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: [ "8.1" ]
+        typo3: ["12"]
+
+    steps:
+
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Prepare dependencies for TYPO3 v${{ matrix.typo3 }}"
+        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s composerUpdate"
+
+      - name: "Check for UTF-8 BOM"
+        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s checkBom"
+
+      - name: "Check for duplicate exception codes"
+        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s checkExceptionCodes"
+
   linting:
     name: "linting"
     runs-on: ubuntu-latest
