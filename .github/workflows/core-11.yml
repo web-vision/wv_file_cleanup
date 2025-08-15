@@ -127,10 +127,13 @@ jobs:
   unit:
     name: "unit"
     runs-on: ubuntu-latest
+    needs: ["code-quality", "linting", "integration"]
     strategy:
       fail-fast: false
       matrix:
-        php-version: [ "7.4", "8.0", "8.1", "8.2", "8.3", "8.4" ]
+        # Only test with lowest and highest supported php version to reduce count of test mutations. Highest should
+        # reveal issues with php version in-between in most of the cases.
+        php-version: [ "7.4", "8.4" ]
         typo3: ["11"]
     permissions:
       # actions: read|write|none
@@ -173,10 +176,13 @@ jobs:
   unitRandom:
     name: "unitRandom"
     runs-on: ubuntu-latest
+    needs: ["code-quality", "linting", "integration"]
     strategy:
       fail-fast: false
       matrix:
-        php-version: [ "7.4", "8.0", "8.1", "8.2", "8.3", "8.4" ]
+        # Only test with lowest and highest supported php version to reduce count of test mutations. Highest should
+        # reveal issues with php version in-between in most of the cases.
+        php-version: [ "7.4", "8.4" ]
         typo3: ["11"]
     permissions:
       # actions: read|write|none
@@ -215,3 +221,70 @@ jobs:
 
       - name: "Executing tests"
         run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s unitRandom"
+
+  functional:
+    name: "functional"
+    # ubuntu-latest the available podman version seems to have issues with MariaDB images 10.4 or higher.
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # Only test with lowest and highest supported php version to reduce count of test mutations. Highest should
+        # reveal issues with php version in-between in most of the cases.
+        php-version: [ "7.4", "8.4" ]
+        typo3: ["11"]
+    needs: ["code-quality", "linting", "integration"]
+    permissions:
+      # actions: read|write|none
+      actions: none
+      # checks: read|write|none
+      checks: none
+      # contents: read|write|none
+      contents: read
+      # deployments: read|write|none
+      deployments: none
+      # id-token: read|write|none
+      id-token: none
+      # issues: read|write|none
+      issues: none
+      # discussions: read|write|none
+      discussions: none
+      # packages: read|write|none
+      packages: read
+      # pages: read|write|none
+      pages: none
+      # pull-requests: read|write|none
+      pull-requests: none
+      # repository-projects: read|write|none
+      repository-projects: read
+      # security-events: read|write|none
+      security-events: none
+      # statuses: read|write|none
+      statuses: none
+    steps:
+
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Prepare dependencies for TYPO3 v${{ matrix.typo3 }}"
+        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s composerUpdate"
+
+      - name: "functional with SQLite"
+        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d sqlite -s functional"
+
+      - name: "functional with MySQL 5.5 mysqli"
+        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d mysql -i 5.5 -a mysqli -s functional"
+
+      - name: "functional with MySQL 8.0 pdo_mysql"
+        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d mysql -i 8.0 -a pdo_mysql -s functional"
+
+      - name: "functional with MariaDB 10.4 mysqli"
+        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d mariadb -i 10.4 -a mysqli -s functional"
+
+      - name: "functional with MariaDB 10.6 pdo_mysql"
+        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d mariadb -i 10.6 -a pdo_mysql -s functional"
+
+      - name: "functional with Postgres 10"
+        # Would require composer patch for dbal 2.x with PHP8.1 or newer
+        if: ${{ matrix.php-version >= '8.1' }}
+        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d postgres -i 10 -s functional"
