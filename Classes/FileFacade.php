@@ -18,6 +18,7 @@ namespace WebVision\WvFileCleanup;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
+use TYPO3\CMS\Core\Resource\FileInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -38,11 +39,6 @@ class FileFacade
     protected static $lastReferenceTimestamps = [];
 
     /**
-     * @var \TYPO3\CMS\Core\Resource\FileInterface
-     */
-    protected $resource;
-
-    /**
      * @var \TYPO3\CMS\Core\Database\ConnectionPool
      */
     protected $queryBuilder;
@@ -53,13 +49,13 @@ class FileFacade
      */
     protected $databaseConnection;
 
-    /**
-     * @param \TYPO3\CMS\Core\Resource\FileInterface $resource
-     */
-    public function __construct(\TYPO3\CMS\Core\Resource\FileInterface $resource)
+    public function __construct(
+        private readonly FileInterface $resource,
+        private readonly IconFactory $iconFactory
+    )
     {
-        $this->resource = $resource;
-        $this->iconFactory = GeneralUtility::makeInstance(IconFactory::class);
+       # $this->resource = $resource;
+       # $this->iconFactory = GeneralUtility::makeInstance(IconFactory::class);
     }
 
     /**
@@ -72,7 +68,7 @@ class FileFacade
     }
 
     /**
-     * @return \TYPO3\CMS\Core\Resource\FileInterface
+     * @return FileInterface
      */
     public function getResource()
     {
@@ -296,7 +292,7 @@ class FileFacade
 
     protected function initDatabaseConnection()
     {
-        $this->queryBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);
+           $this->queryBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class);
     }
 
     /**
