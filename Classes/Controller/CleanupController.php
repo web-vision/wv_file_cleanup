@@ -25,7 +25,6 @@ use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
-use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
 use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
 
 /**
@@ -64,7 +63,11 @@ class CleanupController extends ActionController
         $this->moduleTemplate = $this->moduleTemplateFactory->create($this->request);
     }
 
-    public function initializeView(ViewInterface $view): void
+    /**
+     * Note that `$view` does not have native type declaration by intention to follow the recommended migration path for
+     * https://docs.typo3.org/c/typo3/cms-core/main/en-us/Changelog/11.5/Deprecation-95222-ExtbaseViewInterface.html.
+     */
+    public function initializeView($view): void
     {
         $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/Backend/ContextMenu');
         $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/WvFileCleanup/Cleanup');

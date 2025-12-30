@@ -146,11 +146,6 @@ parameters:
 			path: ../../../Classes/FileFacade.php
 
 		-
-			message: "#^Parameter \\#1 \\$function of function call_user_func_array expects callable\\(\\)\\: mixed, array\\{TYPO3\\\\CMS\\\\Core\\\\Resource\\\\FileInterface, string\\} given\\.$#"
-			count: 1
-			path: ../../../Classes/FileFacade.php
-
-		-
 			message: "#^Property WebVision\\\\WvFileCleanup\\\\FileFacade\\:\\:\\$databaseConnection has no type specified\\.$#"
 			count: 1
 			path: ../../../Classes/FileFacade.php
