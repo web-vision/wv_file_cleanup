@@ -66,6 +66,11 @@ parameters:
 			path: ../../../Classes/Controller/CleanupController.php
 
 		-
+			message: "#^Method WebVision\\\\WvFileCleanup\\\\Controller\\\\CleanupController\\:\\:initializeView\\(\\) has parameter \\$view with no type specified\\.$#"
+			count: 1
+			path: ../../../Classes/Controller/CleanupController.php
+
+		-
 			message: "#^PHPDoc tag @var has invalid value \\(\\$resourceFactory ResourceFactory \\*\\)\\: Unexpected token \"\\$resourceFactory\", expected type at offset 9$#"
 			count: 2
 			path: ../../../Classes/Controller/CleanupController.php
@@ -82,11 +87,6 @@ parameters:
 
 		-
 			message: "#^Parameter \\#2 \\$replace of function str_replace expects array\\|string, int\\<1, max\\> given\\.$#"
-			count: 1
-			path: ../../../Classes/Controller/CleanupController.php
-
-		-
-			message: "#^Parameter \\$view of method WebVision\\\\WvFileCleanup\\\\Controller\\\\CleanupController\\:\\:initializeView\\(\\) has invalid type TYPO3\\\\CMS\\\\Extbase\\\\Mvc\\\\View\\\\ViewInterface\\.$#"
 			count: 1
 			path: ../../../Classes/Controller/CleanupController.php
 
@@ -157,11 +157,6 @@ parameters:
 
 		-
 			message: "#^PHPDoc tag @var has invalid value \\(\\)\\: Unexpected token \"\\\\n     \", expected type at offset 34$#"
-			count: 1
-			path: ../../../Classes/FileFacade.php
-
-		-
-			message: "#^Parameter \\#1 \\$callback of function call_user_func_array expects callable\\(\\)\\: mixed, array\\{TYPO3\\\\CMS\\\\Core\\\\Resource\\\\FileInterface, string\\} given\\.$#"
 			count: 1
 			path: ../../../Classes/FileFacade.php
 

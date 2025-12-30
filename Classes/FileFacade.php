@@ -287,8 +287,9 @@ class FileFacade
      */
     public function __call($method, $arguments)
     {
-        if (is_callable([$this->resource, $method])) {
-            return call_user_func_array([$this->resource, $method], $arguments);
+        $resourceMethod = [$this->resource, $method];
+        if (is_callable($resourceMethod)) {
+            return call_user_func_array($resourceMethod, $arguments);
         }
 
         return null;
