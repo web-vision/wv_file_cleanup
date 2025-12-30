@@ -56,7 +56,10 @@
             "typo3/class-alias-loader": true,
             "sbuerk/typo3-cmscomposerinstallers-testingframework-bridge": true
         },
-        "sort-packages": true
+        "sort-packages": true,
+        "audit": {
+            "block-insecure": false
+        }
     },
     "minimum-stability": "dev",
     "prefer-stable": true
