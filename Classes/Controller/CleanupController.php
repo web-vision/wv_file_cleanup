@@ -26,6 +26,7 @@ use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use WebVision\WvFileCleanup\Domain\Repository\FileRepository;
+use WebVision\WvFileCleanup\Utility\LanguageLabels;
 
 /**
  * Class CleanupController
@@ -46,16 +47,20 @@ class CleanupController extends ActionController
 
     protected IconFactory $iconFactory;
 
+    protected LanguageLabels $languageLabels;
+
     public function __construct(
         FileRepository $fileRepository,
         PageRenderer $pageRenderer,
         ModuleTemplateFactory $moduleTemplateFactory,
-        IconFactory $iconFactory
+        IconFactory $iconFactory,
+        LanguageLabels $languageLabels
     ) {
         $this->fileRepository = $fileRepository;
         $this->pageRenderer = $pageRenderer;
         $this->moduleTemplateFactory = $moduleTemplateFactory;
         $this->iconFactory = $iconFactory;
+        $this->languageLabels = $languageLabels;
     }
 
     public function initializeAction(): void
@@ -91,14 +96,12 @@ class CleanupController extends ActionController
      */
     public function initializeObject(): void
     {
-        $langResourcePath = 'EXT:core/Resources/Private/Language/';
-        $fileListResourcePath = 'EXT:filelist/Resources/Private/Language/';
-        $this->getLanguageService()->includeLLFile($langResourcePath . 'locallang_core.xlf');
-        $this->getLanguageService()->includeLLFile($langResourcePath . 'locallang_misc.xlf');
-        $this->getLanguageService()->includeLLFile($fileListResourcePath . 'locallang_mod_file_list.xlf');
-        $this->getLanguageService()->includeLLFile('EXT:wv_file_cleanup/Resources/Private/Language/locallang_mod_cleanup.xlf');
+        foreach ($this->languageLabels->getControllerLanguageLabelFiles() as $languageLabelFile) {
+            $this->getLanguageService()->includeLLFile($languageLabelFile);
+        }
 
         // GPvars
+        // @todo Retrieve from request when TYPO3 v11 support is dropped.
         $combinedIdentifier = GeneralUtility::_GP('id');
 
         try {
@@ -143,10 +146,10 @@ class CleanupController extends ActionController
             $this->folder = null;
             $this->addFlashMessage(
                 sprintf(
-                    $this->getLanguageService()->getLL('missingFolderPermissionsMessage'),
+                    $this->getLanguageService()->getLL($this->languageLabels->missingFolderPermissionsMessage()),
                     htmlspecialchars($combinedIdentifier)
                 ),
-                $this->getLanguageService()->getLL('missingFolderPermissionsTitle'),
+                $this->getLanguageService()->getLL($this->languageLabels->missingFolderPermissionsTitle()),
                 FlashMessage::NOTICE
             );
         } catch (Exception $fileException) {
@@ -163,17 +166,17 @@ class CleanupController extends ActionController
             }
             $this->addFlashMessage(
                 sprintf(
-                    $this->getLanguageService()->getLL('folderNotFoundMessage'),
+                    $this->getLanguageService()->getLL($this->languageLabels->folderNotFoundMessage()),
                     htmlspecialchars($combinedIdentifier)
                 ),
-                $this->getLanguageService()->getLL('folderNotFoundTitle'),
+                $this->getLanguageService()->getLL($this->languageLabels->folderNotFoundTitle()),
                 FlashMessage::NOTICE
             );
         } catch (\RuntimeException $e) {
             $this->folder = null;
             $this->addFlashMessage(
                 $e->getMessage() . ' (' . $e->getCode() . ')',
-                $this->getLanguageService()->getLL('folderNotFoundTitle'),
+                $this->getLanguageService()->getLL($this->languageLabels->folderNotFoundTitle()),
                 FlashMessage::NOTICE
             );
         }
@@ -255,7 +258,7 @@ class CleanupController extends ActionController
                 $parentFolder->getIdentifier() !== $this->folder->getIdentifier()
                 && $currentStorage->isWithinFileMountBoundaries($parentFolder)
             ) {
-                $levelUpTitle = $this->getLanguageService()->getLL('labels.upOneLevel');
+                $levelUpTitle = $this->getLanguageService()->getLL($this->languageLabels->oneLevelUpLabel());
                 if (!$levelUpTitle) {
                     $levelUpTitle = 'Up one level';
                 }
@@ -270,6 +273,7 @@ class CleanupController extends ActionController
                     ->setTitle($levelUpTitle)
                     ->setIcon($this->iconFactory->getIcon('actions-view-go-up', Icon::SIZE_SMALL));
                 if ((new Typo3Version())->getMajorVersion() < 12) {
+                    // @todo Remove this when TYPO3 v11 support is dropped.
                     $levelUpClick = 'top.document.getElementsByName("navigation")[0].';
                     $levelUpClick .= 'contentWindow.Tree.highlightActiveItem("file","folder';
                     $levelUpClick .= GeneralUtility::md5int($parentFolder->getCombinedIdentifier());
@@ -303,7 +307,7 @@ class CleanupController extends ActionController
             'displayThumbs' => [
                 'enabled' => $GLOBALS['TYPO3_CONF_VARS']['GFX']['thumbnails']
                     && $backendUserTsconfig['options.']['file_list.']['enableDisplayThumbnails'] === 'selectable',
-                'label' => $this->getLanguageService()->getLL('displayThumbs'),
+                'label' => $this->getLanguageService()->getLL($this->languageLabels->getDisplayThumbsLabel()),
                 'html' => BackendUtility::getFuncCheck(
                     $this->folder ? $this->folder->getCombinedIdentifier() : '',
                     'SET[displayThumbs]',
@@ -316,7 +320,7 @@ class CleanupController extends ActionController
             ],
             'recursive' => [
                 'enabled' => true,
-                'label' => $this->getLanguageService()->getLL('search_folders_recursive'),
+                'label' => $this->getLanguageService()->getLL($this->languageLabels->searchFoldersRecursiveLabel()),
                 'html' => BackendUtility::getFuncCheck(
                     $this->folder ? $this->folder->getCombinedIdentifier() : '',
                     'SET[recursive]',

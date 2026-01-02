@@ -27,4 +27,3 @@ services:
 
   WebVision\WvFileCleanup\Controller\CleanupController:
     tags: [ 'backend.controller' ]
-
