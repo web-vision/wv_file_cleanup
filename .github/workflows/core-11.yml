@@ -1,5 +1,15 @@
 name: "TYPO3 v11"
 
+# Every "runTests.sh" call below passes "-b docker". The script prefers podman
+# whenever it is present and only falls back to docker, which is the right
+# default for it -- but GitHub hosted runners ship both, and since 2026-07-29
+# their podman/crun combination aborts the first container start of a job with
+# "OCI runtime error: crun: unknown version specified" (exit code 126). It is
+# intermittent, hits any job, and was traced to neither the runner image nor
+# the TYPO3 testing image changing. Selecting docker here avoids crun entirely
+# and leaves the script default and local runs untouched. Drop the flag once
+# GitHub stops producing the mismatch.
+
 on:
   pull_request:
   workflow_dispatch:
@@ -47,13 +57,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "Prepare dependencies for TYPO3 v${{ matrix.typo3 }}"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s composerUpdate"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s composerUpdate"
 
       - name: "CGL"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s cgl"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s cgl"
 
       - name: "Static code analyzer"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s phpstan"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s phpstan"
 
   integration:
     name: "integration"
@@ -70,13 +80,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "Prepare dependencies for TYPO3 v${{ matrix.typo3 }}"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s composerUpdate"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s composerUpdate"
 
       - name: "Check for UTF-8 BOM"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s checkBom"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s checkBom"
 
       - name: "Check for duplicate exception codes"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s checkExceptionCodes"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s checkExceptionCodes"
 
   linting:
     name: "linting"
@@ -119,10 +129,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "Prepare dependencies for TYPO3 v${{ matrix.typo3 }}"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s composerUpdate"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s composerUpdate"
 
       - name: "Run PHP lint"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s lintPhp"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s lintPhp"
 
   unit:
     name: "unit"
@@ -168,10 +178,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "Prepare dependencies for TYPO3 v${{ matrix.typo3 }}"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s composerUpdate"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s composerUpdate"
 
       - name: "Executing tests"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s unit"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s unit"
 
   unitRandom:
     name: "unitRandom"
@@ -217,10 +227,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "Prepare dependencies for TYPO3 v${{ matrix.typo3 }}"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s composerUpdate"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s composerUpdate"
 
       - name: "Executing tests"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s unitRandom"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s unitRandom"
 
   functional:
     name: "functional"
@@ -267,24 +277,24 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "Prepare dependencies for TYPO3 v${{ matrix.typo3 }}"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s composerUpdate"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -s composerUpdate"
 
       - name: "functional with SQLite"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d sqlite -s functional"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d sqlite -s functional"
 
       - name: "functional with MySQL 5.5 mysqli"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d mysql -i 5.5 -a mysqli -s functional"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d mysql -i 5.5 -a mysqli -s functional"
 
       - name: "functional with MySQL 8.0 pdo_mysql"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d mysql -i 8.0 -a pdo_mysql -s functional"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d mysql -i 8.0 -a pdo_mysql -s functional"
 
       - name: "functional with MariaDB 10.4 mysqli"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d mariadb -i 10.4 -a mysqli -s functional"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d mariadb -i 10.4 -a mysqli -s functional"
 
       - name: "functional with MariaDB 10.6 pdo_mysql"
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d mariadb -i 10.6 -a pdo_mysql -s functional"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d mariadb -i 10.6 -a pdo_mysql -s functional"
 
       - name: "functional with Postgres 10"
         # Would require composer patch for dbal 2.x with PHP8.1 or newer
         if: ${{ matrix.php-version >= '8.1' }}
-        run: "Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d postgres -i 10 -s functional"
+        run: "Build/Scripts/runTests.sh -b docker -t ${{ matrix.typo3 }} -p ${{ matrix.php-version }} -d postgres -i 10 -s functional"
