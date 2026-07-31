@@ -421,6 +421,9 @@ COMPOSER_ROOT_VERSION="2.x.x-dev"
 CONTAINER_INTERACTIVE="-it --init"
 HOST_UID=$(id -u)
 HOST_GID=$(id -g)
+# Additional container parameters, provided by the environment. Empty unless the caller
+# exports it, which is how the portfolio harnesses inject CI specific flags.
+CI_PARAMS="${CI_PARAMS:-}"
 USERSET=""
 if [ $(uname) != "Darwin" ]; then
     USERSET="--user $HOST_UID"
