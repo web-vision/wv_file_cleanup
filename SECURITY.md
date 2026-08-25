@@ -14,16 +14,16 @@ reporting an issue against them.
 
 | Version        | Supported           |
 | -------------- | ------------------- |
-| 2.x            | :x:                 |
-| 1.x            | :x:                 |
-| < 1.0          | :x:                 |
+| 11,12.x        | :x:                 |
+| none.x         | :x:                 |
+| < none.0       | :x:                 |
 
 > **Note:** the newest version of this product targets a TYPO3 version that has left
 > regular LTS maintenance, so no version is currently covered by security updates.
 > Support for a newer TYPO3 version may be added in the future; if you depend on
 > this product, please get in touch through the reporting channel below.
 
-Planned end of support for this product: **30 April 2026 (end of regular TYPO3 12 LTS support)**.
+Planned end of support for this product: **unknown (end of regular TYPO3 1 LTS support)**.
 
 ## Reporting a Vulnerability
 
