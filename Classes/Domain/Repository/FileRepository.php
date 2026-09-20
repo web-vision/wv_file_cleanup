@@ -183,9 +183,21 @@ class FileRepository implements SingletonInterface
                     'ref_uid',
                     $queryBuilder1->createNamedParameter($file->getUid(), Connection::PARAM_INT)
                 ),
-                $queryBuilder1->expr()->neq(
-                    'tablename',
-                    $queryBuilder1->createNamedParameter('sys_file_metadata', Connection::PARAM_STR)
+                $queryBuilder1->expr()->or(
+                    $queryBuilder1->expr()->neq(
+                        'tablename',
+                        $queryBuilder1->createNamedParameter('sys_file_metadata', Connection::PARAM_STR)
+                    ),
+                    $queryBuilder1->expr()->and(
+                        $queryBuilder1->expr()->eq(
+                            'tablename',
+                            $queryBuilder1->createNamedParameter('sys_file_metadata', Connection::PARAM_STR)
+                        ),
+                        $queryBuilder1->expr()->neq(
+                            'field',
+                            $queryBuilder1->createNamedParameter('file', Connection::PARAM_STR)
+                        )
+                    )
                 )
             )
             ->execute();
